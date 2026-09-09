@@ -23,7 +23,7 @@ const SUBMODULES = [
   },
   {
     href: "/vantagens/vencidas",
-    label: "Vantagens Vencidas",
+    label: "Vencidas e a Vencer",
     icon: AlertTriangle,
   },
   {

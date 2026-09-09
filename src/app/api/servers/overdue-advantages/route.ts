@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 /**
  * GET /api/servers/overdue-advantages
- * Retorna lista de servidores com vantagens vencidas
+ * Retorna lista de servidores com vantagens vencidas e a vencer
  */
 export async function GET() {
   try {
@@ -18,16 +18,16 @@ export async function GET() {
       .where(eq(servers.active, true));
 
     const overdueList: any[] = [];
+    const upcomingList: any[] = [];
 
     for (const server of activeServers) {
-      const serverOverdue: any = {
+      const serverIssues: any = {
         server,
-        ats: null,
-        evolution: null,
-        license: null,
+        overdue: [], // Vantagens vencidas
+        upcoming: [], // Vantagens a vencer
       };
 
-      // === VERIFICAR ATS VENCIDO ===
+      // === VERIFICAR ATS ===
       const atsList = await db
         .select()
         .from(atsBenefits)
@@ -44,18 +44,26 @@ export async function GET() {
         
         if (diffDays > 0) {
           // ATS vencido
-          serverOverdue.ats = {
+          serverIssues.overdue.push({
             type: "ATS",
-            lastQuinquenio: lastAts.quinquenioNumber,
-            lastDate: lastAts.startDate,
-            nextExpected: nextExpected.toISOString().split("T")[0],
-            daysOverdue: diffDays,
-            nextQuinquenio: `${lastAts.quinquenioNumber + 1}º Quinquênio`,
-          };
+            label: `${lastAts.quinquenioNumber + 1}º Quinquênio`,
+            expectedDate: nextExpected.toISOString().split("T")[0],
+            daysPast: diffDays,
+            details: `Último ATS: ${lastAts.quinquenioNumber}º (${lastAts.startDate})`,
+          });
+        } else if (diffDays >= -180 && diffDays <= 0) {
+          // ATS a vencer nos próximos 180 dias
+          serverIssues.upcoming.push({
+            type: "ATS",
+            label: `${lastAts.quinquenioNumber + 1}º Quinquênio`,
+            expectedDate: nextExpected.toISOString().split("T")[0],
+            daysRemaining: Math.abs(diffDays),
+            details: `Último ATS: ${lastAts.quinquenioNumber}º (${lastAts.startDate})`,
+          });
         }
       }
 
-      // === VERIFICAR EVOLUÇÃO FUNCIONAL VENCIDA ===
+      // === VERIFICAR EVOLUÇÃO FUNCIONAL ===
       if (["PEB I", "PEB II", "DIRETOR DE ESCOLA"].includes(server.position)) {
         const evolutions = await db
           .select()
@@ -66,46 +74,46 @@ export async function GET() {
         if (evolutions.length > 0) {
           const lastEvo = evolutions[0];
           
-          // Se já tem nextEvolutionDate calculada, usa ela
           if (lastEvo.nextEvolutionDate && lastEvo.isLast) {
             const nextDate = new Date(lastEvo.nextEvolutionDate);
             const diffDays = Math.floor((today.getTime() - nextDate.getTime()) / (1000 * 60 * 60 * 24));
             
             if (diffDays > 0) {
-              serverOverdue.evolution = {
-                type: "EVOLUCAO_FUNCIONAL",
-                lastEvolution: lastEvo.evolutionNumber,
-                lastDate: lastEvo.startDate,
-                fromLevel: lastEvo.toLevel,
-                toLevel: lastEvo.nextToLevel,
-                nextExpected: lastEvo.nextEvolutionDate,
-                daysOverdue: diffDays,
-                nextEvolution: `${lastEvo.evolutionNumber + 1}ª Evolução`,
-              };
+              serverIssues.overdue.push({
+                type: "EVOLUÇÃO",
+                label: `${lastEvo.evolutionNumber + 1}ª Evolução (${lastEvo.toLevel} → ${lastEvo.nextToLevel})`,
+                expectedDate: lastEvo.nextEvolutionDate,
+                daysPast: diffDays,
+                details: `Última evolução: ${lastEvo.evolutionNumber}ª (${lastEvo.startDate})`,
+              });
+            } else if (diffDays >= -180 && diffDays <= 0) {
+              serverIssues.upcoming.push({
+                type: "EVOLUÇÃO",
+                label: `${lastEvo.evolutionNumber + 1}ª Evolução (${lastEvo.toLevel} → ${lastEvo.nextToLevel})`,
+                expectedDate: lastEvo.nextEvolutionDate,
+                daysRemaining: Math.abs(diffDays),
+                details: `Última evolução: ${lastEvo.evolutionNumber}ª (${lastEvo.startDate})`,
+              });
             }
           }
         }
       }
 
       // === VERIFICAR LICENÇA PRÊMIO ===
-      // Servidor com 5+ anos de serviço sem certidão ou com período aquisitivo vencido
       const certificates = await db
         .select()
         .from(licenseCertificates)
         .where(eq(licenseCertificates.serverId, server.id))
         .orderBy(desc(licenseCertificates.acquisitionEndDate));
 
-      // Se tem ATS cadastrado, pode calcular período aquisitivo da licença
       if (atsList.length > 0) {
-        const firstAts = atsList[atsList.length - 1]; // Primeiro ATS
+        const firstAts = atsList[atsList.length - 1];
         const firstDate = new Date(firstAts.startDate);
         
-        // Calcula quantos períodos de 5 anos se passaram desde o primeiro ATS
         const yearsSinceFirst = Math.floor((today.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24 * 365));
         const expectedCertificates = Math.floor(yearsSinceFirst / 5);
         
         if (expectedCertificates > certificates.length) {
-          // Servidor tem direito a mais certidões do que tem cadastrado
           const lastCertEndDate = certificates.length > 0 
             ? new Date(certificates[0].acquisitionEndDate)
             : firstDate;
@@ -119,37 +127,49 @@ export async function GET() {
           const diffDays = Math.floor((today.getTime() - nextPeriodEnd.getTime()) / (1000 * 60 * 60 * 24));
           
           if (diffDays > 0 && today > nextPeriodEnd) {
-            serverOverdue.license = {
-              type: "LICENCA_PREMIO",
-              missingCertificates: expectedCertificates - certificates.length,
-              lastCertificate: certificates.length > 0 ? certificates[0].certificateNumber : null,
-              nextPeriodStart: nextPeriodStart.toISOString().split("T")[0],
-              nextPeriodEnd: nextPeriodEnd.toISOString().split("T")[0],
-              daysOverdue: diffDays,
-            };
+            serverIssues.overdue.push({
+              type: "LICENÇA PRÊMIO",
+              label: `${expectedCertificates - certificates.length} certidão(ões) pendente(s)`,
+              expectedDate: nextPeriodEnd.toISOString().split("T")[0],
+              daysPast: diffDays,
+              details: certificates.length > 0 
+                ? `Última certidão: ${certificates[0].certificateNumber}` 
+                : "Nenhuma certidão registrada",
+            });
           }
         }
       }
 
-      // Adiciona servidor à lista se tem alguma vantagem vencida
-      if (serverOverdue.ats || serverOverdue.evolution || serverOverdue.license) {
-        overdueList.push(serverOverdue);
+      // Adiciona servidor às listas apropriadas
+      if (serverIssues.overdue.length > 0) {
+        overdueList.push(serverIssues);
+      }
+      if (serverIssues.upcoming.length > 0) {
+        upcomingList.push(serverIssues);
       }
     }
 
-    // Ordena por quantidade de vantagens vencidas (mais crítico primeiro)
+    // Ordena por criticidade (mais dias vencidos/a vencer primeiro)
     overdueList.sort((a, b) => {
-      const aTotal = (a.ats ? 1 : 0) + (a.evolution ? 1 : 0) + (a.license ? 1 : 0);
-      const bTotal = (b.ats ? 1 : 0) + (b.evolution ? 1 : 0) + (b.license ? 1 : 0);
-      return bTotal - aTotal;
+      const aMaxDays = Math.max(...a.overdue.map((o: any) => o.daysPast));
+      const bMaxDays = Math.max(...b.overdue.map((o: any) => o.daysPast));
+      return bMaxDays - aMaxDays;
+    });
+
+    upcomingList.sort((a, b) => {
+      const aMinDays = Math.min(...a.upcoming.map((u: any) => u.daysRemaining));
+      const bMinDays = Math.min(...b.upcoming.map((u: any) => u.daysRemaining));
+      return aMinDays - bMinDays;
     });
 
     return NextResponse.json({ 
-      servers: overdueList, 
-      count: overdueList.length 
+      overdue: overdueList,
+      upcoming: upcomingList,
+      overdueCount: overdueList.length,
+      upcomingCount: upcomingList.length
     });
   } catch (error) {
-    console.error("Erro ao buscar vantagens vencidas:", error);
-    return NextResponse.json({ error: "Erro ao buscar vantagens vencidas" }, { status: 500 });
+    console.error("Erro ao buscar vantagens:", error);
+    return NextResponse.json({ error: "Erro ao buscar vantagens" }, { status: 500 });
   }
 }
