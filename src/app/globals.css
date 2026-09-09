@@ -18,25 +18,16 @@
   }
 }
 
-/* ============ ESTILOS DE IMPRESSÃO ============ */
+/* ============ ESTILOS DE IMPRESSÃO - VISUAL MODERNO ============ */
 @media print {
-  /* Reset geral - remove TODOS os elementos gráficos */
+  /* Força impressão de cores e backgrounds */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
 
-  /* Remove TODOS os backgrounds coloridos/gradientes */
-  [class*="bg-gradient"],
-  [class*="from-"],
-  [class*="to-"],
-  [class*="via-"] {
-    background: none !important;
-    background-image: none !important;
-  }
-
-  /* Esconde elementos desnecessários (interface) */
+  /* Esconde elementos de interface */
   .print\:hidden,
   nav,
   aside,
@@ -50,95 +41,196 @@
     display: none !important;
   }
 
-  /* Esconde todos os ícones SVG e emojis decorativos */
-  svg:not(.report-container svg),
-  .lucide,
-  [data-icon],
-  .icon,
-  .emoji {
+  /* Esconde ícones SVG */
+  svg:not(.report-document svg),
+  [class*="lucide"] {
     display: none !important;
   }
 
-  /* Esconde badges coloridos e indicadores visuais */
-  [class*="rounded-full"][class*="bg-"]:not(.report-container [class*="rounded-full"]) {
-    display: none !important;
-  }
-
-  /* Remove margens da página */
+  /* Configuração de página A4 */
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 0.8cm 1.2cm 1cm 1.2cm;
   }
 
-  /* Remove background e sombras desnecessários */
+  /* Body moderno com fonte sans-serif */
   body {
     background: white !important;
-    color: black !important;
+    color: #1a1a1a !important;
     margin: 0 !important;
     padding: 0 !important;
-    font-size: 11pt !important;
+    font-size: 10pt !important;
+    line-height: 1.5 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
   }
 
-  /* Container principal do relatório */
-  .report-container {
+  /* Documento do relatório */
+  .report-document {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
-    border: none !important;
     background: white !important;
   }
 
-  /* Dentro do report-container, mantém apenas elementos essenciais */
-  .report-container * {
+  /* Cabeçalho institucional - formato oficial */
+  .report-header {
     background: white !important;
-    background-image: none !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
+    border-bottom: 3px solid #1e40af !important;
+    padding: 10pt 0 !important;
+    margin-bottom: 8pt !important;
   }
 
-  /* Cabeçalhos de tabela com fundo cinza claro */
-  .report-container thead tr,
-  .report-container th {
-    background: #f3f4f6 !important;
+  .report-header div {
+    text-align: center !important;
   }
 
-  /* Tabelas */
-  table {
-    page-break-inside: avoid !important;
+  .report-header p {
+    color: #1a1a1a !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+    font-size: 9pt !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3pt !important;
+  }
+
+  .report-header p:last-of-type {
+    color: #1e40af !important;
+    font-weight: bold !important;
+    font-size: 10pt !important;
+    margin-top: 5pt !important;
+    letter-spacing: 0.5pt !important;
+  }
+
+  /* Título do relatório - centralizado e contido */
+  .report-title {
+    background: linear-gradient(to right, #eff6ff 0%, #ffffff 100%) !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    padding: 5pt 0 !important;
+    margin-bottom: 8pt !important;
+  }
+
+  .report-title h1 {
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    letter-spacing: 0.5pt !important;
+    margin: 0 auto !important;
+    color: #1e40af !important;
+    max-width: 60% !important;
+  }
+
+  .report-title p {
+    font-size: 8pt !important;
+    color: #64748b !important;
+    margin-top: 2pt !important;
+  }
+
+  /* Conteúdo */
+  .report-content {
+    padding: 0 !important;
+    margin: 0 0 20pt 0 !important;
+  }
+
+  /* Subtítulos de seção */
+  .report-content h2 {
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    margin: 15pt 0 8pt 0 !important;
+    padding: 5pt 0 !important;
+    border-bottom: 2px solid #3b82f6 !important;
+    color: #1e40af !important;
+    letter-spacing: 0.5pt !important;
+  }
+
+  /* Tabelas modernas */
+  .report-table {
+    page-break-inside: auto !important;
     border-collapse: collapse !important;
     width: 100% !important;
+    margin: 10pt 0 !important;
+    font-size: 9pt !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
   }
 
-  table th,
-  table td {
+  .report-table tr {
     page-break-inside: avoid !important;
+    page-break-after: auto !important;
   }
 
-  /* Evita quebra de página no meio de seções importantes */
-  .report-container > div {
-    page-break-inside: avoid !important;
+  .report-table thead {
+    display: table-header-group !important;
+  }
+
+  /* Cabeçalhos de tabela com gradiente azul */
+  .report-table thead tr {
+    background: linear-gradient(to bottom, #3b82f6 0%, #2563eb 100%) !important;
+  }
+
+  .report-table th {
+    border: 1px solid #1e40af !important;
+    padding: 8pt 6pt !important;
+    color: white !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    text-transform: uppercase !important;
+    font-size: 8pt !important;
+    letter-spacing: 0.5pt !important;
+  }
+
+  /* Linhas alternadas para melhor leitura */
+  .report-table tbody tr:nth-child(even) {
+    background: #f8fafc !important;
+  }
+
+  .report-table tbody tr:nth-child(odd) {
+    background: white !important;
+  }
+
+  .report-table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6pt !important;
+    color: #1e293b !important;
+    vertical-align: top !important;
+  }
+
+  /* CPF em fonte monoespaçada */
+  .report-table td.font-mono {
+    font-family: "Courier New", monospace !important;
+    font-size: 8.5pt !important;
+    color: #334155 !important;
+  }
+
+  /* Rodapé moderno - compacto */
+  .report-footer {
+    background: linear-gradient(to top, #f8fafc 0%, #ffffff 100%) !important;
+    border-top: 2px solid #cbd5e1 !important;
+    padding: 6pt 0 !important;
+    margin-top: 8pt !important;
+  }
+
+  .report-footer p {
+    font-size: 7.5pt !important;
+    color: #64748b !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
   }
 
   /* Remove links */
   a {
     text-decoration: none !important;
-    color: black !important;
-  }
-
-  /* Seções do relatório */
-  .report-container h1,
-  .report-container h2,
-  .report-container h3 {
-    color: black !important;
-    page-break-after: avoid !important;
+    color: #1e40af !important;
   }
 
   /* Sidebar e menu */
   aside,
   .sidebar,
-  nav {
+  nav,
+  header,
+  footer:not(.report-footer) {
     display: none !important;
   }
 
@@ -149,67 +241,8 @@
     width: 100% !important;
   }
 
-  /* Inputs e selects não aparecem */
-  input,
-  select,
-  textarea {
-    border: none !important;
-    background: transparent !important;
-  }
-
-  /* Garante que bordas pretas apareçam */
-  .border-black,
-  .border-2 {
-    border-color: black !important;
-    border-width: 1px !important;
-  }
-
-  /* Títulos das seções */
-  h2 {
-    font-size: 14pt !important;
-    font-weight: bold !important;
-    margin-top: 10pt !important;
-    margin-bottom: 5pt !important;
-  }
-
-  /* Texto em itálico */
-  .italic {
-    font-style: italic !important;
-  }
-
-  /* Fonte monoespaçada */
-  .font-mono {
-    font-family: "Courier New", monospace !important;
-  }
-
-  /* Cabeçalhos das tabelas - fundo cinza para destaque */
-  .print-table-header {
-    background-color: #e2e8f0 !important;
-  }
-
-  /* Força impressão de bordas em todos os elementos */
-  .report-container table {
-    border-color: black !important;
-  }
-
-  .report-container table th,
-  .report-container table td {
-    border-color: black !important;
-    color: black !important;
-  }
-
-  /* Remove cores desnecessárias mas mantém contraste */
-  .report-container .italic {
-    color: #374151 !important;
-  }
-
-  /* Garante que o cabeçalho institucional tenha bordas duplas */
-  .report-container > div:first-child {
-    border: 3px double black !important;
-  }
-
-  /* Seção Próximas Aquisições com borda mais grossa */
-  .report-container > div:nth-child(3) {
-    border: 2px solid black !important;
+  /* Hover states não aplicam na impressão */
+  .hover\:bg-slate-50:hover {
+    background: inherit !important;
   }
 }
