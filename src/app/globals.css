@@ -245,4 +245,151 @@
   .hover\:bg-slate-50:hover {
     background: inherit !important;
   }
+
+  /* ============ RELATÓRIO FUNCIONAL - VISUAL OFICIAL ============ */
+  /* Sobrescreve estilos modernos para criar visual oficial em preto e branco */
+  
+  .report-container {
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 11pt !important;
+    color: black !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Remove TODOS os backgrounds e gradientes */
+  .report-container * {
+    background: white !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Cabeçalho institucional - borda simples */
+  .report-container > div:first-child {
+    border: 2px solid black !important;
+    padding: 15px !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* Títulos das seções */
+  .report-container h2 {
+    color: black !important;
+    border-bottom: 2px solid black !important;
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 5px !important;
+  }
+
+  /* Subtítulos */
+  .report-container h3,
+  .report-container p.font-bold {
+    color: black !important;
+    font-weight: bold !important;
+  }
+
+  /* Tabelas - bordas pretas sólidas */
+  .report-container table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+    page-break-inside: avoid !important;
+  }
+
+  .report-container th,
+  .report-container td {
+    border: 1px solid black !important;
+    padding: 6px 8px !important;
+    text-align: left !important;
+    color: black !important;
+    background: white !important;
+  }
+
+  /* Cabeçalhos de tabela - negrito */
+  .report-container thead th {
+    background: white !important;
+    font-weight: bold !important;
+    font-size: 10pt !important;
+  }
+
+  /* Corpo da tabela */
+  .report-container tbody td {
+    font-size: 10pt !important;
+  }
+
+  /* Remove linhas alternadas */
+  .report-container tbody tr:nth-child(even) {
+    background: white !important;
+  }
+
+  .report-container tbody tr:nth-child(odd) {
+    background: white !important;
+  }
+
+  /* Print table header - mantém negrito sem cor */
+  .report-container .print-table-header {
+    background: white !important;
+  }
+
+  .report-container .print-table-header th {
+    font-weight: bold !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Remove todas as cores de fundo do Tailwind */
+  .report-container [class*="bg-"] {
+    background: white !important;
+  }
+
+  /* Remove gradientes */
+  .report-container [class*="bg-gradient"] {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  /* Remove sombras */
+  .report-container [class*="shadow"] {
+    box-shadow: none !important;
+  }
+
+  /* Remove bordas coloridas - mantém apenas preto */
+  .report-container [class*="border-"] {
+    border-color: black !important;
+  }
+
+  /* Remove textos coloridos - tudo em preto */
+  .report-container [class*="text-"] {
+    color: black !important;
+  }
+
+  /* Remove textos itálicos coloridos */
+  .report-container .italic {
+    color: black !important;
+    font-style: italic !important;
+  }
+
+  /* Fonte monoespaçada para CPF */
+  .report-container .font-mono {
+    font-family: "Courier New", Courier, monospace !important;
+  }
+
+  /* Rodapé */
+  .report-container > div:last-child {
+    border-top: 2px solid black !important;
+    margin-top: 30px !important;
+    padding-top: 15px !important;
+    font-size: 9pt !important;
+  }
+
+  /* Quebras de página */
+  .report-container > div {
+    page-break-inside: avoid !important;
+  }
+
+  /* Links sem sublinhado */
+  .report-container a {
+    text-decoration: none !important;
+    color: black !important;
+  }
 }
