@@ -159,6 +159,7 @@ export function ServerFormModal({ open, onClose, onSuccess, server }: ServerForm
         category: form.category,
         faixa: form.faixa.trim() || null,
         nivel: form.nivel.trim() || null,
+        designatedFunction: form.designatedFunction.trim() || null,
         ctdStartDate: form.ctdStartDate || null,
         ctdEndDate: form.ctdEndDate || null,
         active: form.active,
