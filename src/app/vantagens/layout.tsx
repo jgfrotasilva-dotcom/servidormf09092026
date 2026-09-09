@@ -13,6 +13,7 @@ import {
   TrendingUp,
   ClipboardList,
   AlertTriangle,
+  Calculator,
 } from "lucide-react";
 
 const SUBMODULES = [
@@ -45,6 +46,11 @@ const SUBMODULES = [
     href: "/vantagens/licenca-premio",
     label: "Licença Prêmio",
     icon: FileText,
+  },
+  {
+    href: "/vantagens/calculadora-licenca",
+    label: "Calculadora Licença",
+    icon: Calculator,
   },
   {
     href: "/vantagens/evolucao-funcional",

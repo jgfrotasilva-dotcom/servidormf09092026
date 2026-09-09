@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
       endTime,
       dateTBD,
       notes,
+      hours,
     } = body;
 
     if (!serverId || !type || !systemDate) {
@@ -94,6 +95,17 @@ export async function POST(request: NextRequest) {
           );
         }
       }
+
+      // Para Falta Aula e Falta Médica Parcial, horas é obrigatório
+      const hoursRequiredTypes = ["FALTA_AULA", "FALTA_MEDICA_PARCIAL"];
+      if (hoursRequiredTypes.includes(subtype)) {
+        if (!hours || hours <= 0) {
+          return NextResponse.json(
+            { error: "Para Falta Aula ou Falta Médica Parcial, informe a quantidade de horas/aulas" },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     if (type === "ORIENTACAO_TECNICA") {
@@ -122,6 +134,7 @@ export async function POST(request: NextRequest) {
         endTime: endTime || null,
         dateTBD: Boolean(dateTBD),
         notes: notes || null,
+        hours: hours || null,
       })
       .returning();
 

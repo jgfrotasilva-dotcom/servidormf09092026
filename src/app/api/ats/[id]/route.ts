@@ -63,7 +63,8 @@ export async function PUT(
 
     // Calcula próxima data
     const startDateObj = new Date(newStartDate);
-    startDateObj.setDate(startDateObj.getDate() + 1825);
+    // O período inclui o dia inicial, então somamos 1824 dias
+    startDateObj.setDate(startDateObj.getDate() + 1824);
     const nextDate = startDateObj.toISOString().split("T")[0];
 
     const type = `${newQuinquenio}º Quinquênio`;

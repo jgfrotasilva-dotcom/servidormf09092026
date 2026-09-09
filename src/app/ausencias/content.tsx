@@ -29,6 +29,7 @@ type AbsenceFormData = {
   endTime: string;
   dateTBD: boolean;
   notes: string;
+  hours: string;
 };
 
 const emptyForm: AbsenceFormData = {
@@ -45,6 +46,7 @@ const emptyForm: AbsenceFormData = {
   endTime: "",
   dateTBD: false,
   notes: "",
+  hours: "",
 };
 
 export default function AusenciasContent() {
@@ -149,6 +151,12 @@ export default function AusenciasContent() {
           payload.days = parseInt(form.days);
           payload.doeDate = form.doeDate;
         }
+        
+        // Adiciona horas para Falta Aula e Falta Médica Parcial
+        const hoursRequiredTypes = ["FALTA_AULA", "FALTA_MEDICA_PARCIAL"];
+        if (hoursRequiredTypes.includes(form.subtype)) {
+          payload.hours = parseInt(form.hours);
+        }
       } else {
         payload.title = form.title;
         payload.location = form.location;
@@ -195,6 +203,14 @@ export default function AusenciasContent() {
         if (!form.endDate) newErrors.endDate = "Data fim é obrigatória";
         if (!form.days) newErrors.days = "Quantidade de dias é obrigatória";
         if (!form.doeDate) newErrors.doeDate = "Data do DOE é obrigatória";
+      }
+      
+      // Validação para horas em Falta Aula e Falta Médica Parcial
+      const hoursRequiredTypes = ["FALTA_AULA", "FALTA_MEDICA_PARCIAL"];
+      if (hoursRequiredTypes.includes(form.subtype)) {
+        if (!form.hours || parseInt(form.hours) <= 0) {
+          newErrors.hours = "Quantidade de horas/aulas é obrigatória";
+        }
       }
     } else {
       if (!form.title) newErrors.title = "Título é obrigatório";
@@ -436,6 +452,13 @@ export default function AusenciasContent() {
                                   <span className="font-semibold">{absence.days} dias</span>
                                 </>
                               )}
+                            {absence.type === "AUSENCIA" &&
+                              (absence.subtype === "FALTA_AULA" || absence.subtype === "FALTA_MEDICA_PARCIAL") &&
+                              absence.hours && (
+                                <span className="font-semibold text-orange-700">
+                                  {absence.hours} {absence.hours === 1 ? "hora/aula" : "horas/aulas"}
+                                </span>
+                              )}
                             {absence.type === "ORIENTACAO_TECNICA" && (
                               <>
                                 <span>{absence.title}</span>
@@ -587,6 +610,26 @@ export default function AusenciasContent() {
                         <p className="mt-1 text-xs text-red-600">{errors.subtype}</p>
                       )}
                     </div>
+
+                    {/* Campo de horas para Falta Aula e Falta Médica Parcial */}
+                    {(form.subtype === "FALTA_AULA" || form.subtype === "FALTA_MEDICA_PARCIAL") && (
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold text-slate-700">
+                          Quantidade de Horas/Aulas *
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={form.hours}
+                          onChange={(e) => setForm({ ...form, hours: e.target.value })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                          placeholder="Ex: 2"
+                        />
+                        {errors.hours && (
+                          <p className="mt-1 text-xs text-red-600">{errors.hours}</p>
+                        )}
+                      </div>
+                    )}
 
                     {/* Campos de período para licenças */}
                     {isPeriodType(form.subtype) && (

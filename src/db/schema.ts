@@ -88,6 +88,7 @@ export const absences = pgTable("absences", {
   endTime: text("end_time"),
   dateTBD: boolean("date_tbd").notNull().default(false), // Data a informar
   notes: text("notes"),
+  hours: integer("hours"), // Quantidade de horas/aulas (para FALTA_AULA e FALTA_MEDICA_PARCIAL)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -171,3 +172,20 @@ export const DESIGNATED_FUNCTIONS = [
 export type Position = (typeof POSITIONS)[number];
 export type CategoryCode = (typeof CATEGORIES)[number]["code"];
 export type DesignatedFunctionCode = (typeof DESIGNATED_FUNCTIONS)[number]["code"];
+
+// Tabela de Requerimentos
+export const requests = pgTable("requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  serverId: uuid("server_id")
+    .notNull()
+    .references(() => servers.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // Tipo de vantagem solicitada
+  description: text("description"), // Descrição do requerimento
+  status: text("status").notNull().default("pendente"), // pendente, aprovado, rejeitado
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  responseNotes: text("response_notes"), // Observações da resposta
+});
+
+export type Request = typeof requests.$inferSelect;
+export type NewRequest = typeof requests.$inferInsert;

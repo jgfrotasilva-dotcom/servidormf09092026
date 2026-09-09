@@ -74,7 +74,8 @@ export async function GET() {
         const last = serverAts[serverAts.length - 1];
         const lastStartDate = new Date(last.startDate);
         const nextExpected = new Date(lastStartDate);
-        nextExpected.setDate(nextExpected.getDate() + 1825);
+        // O período inclui o dia inicial, então somamos 1824 dias
+        nextExpected.setDate(nextExpected.getDate() + 1824);
 
         const diffMs = nextExpected.getTime() - today.getTime();
         const daysUntil = Math.ceil(diffMs / (1000 * 60 * 60 * 24));

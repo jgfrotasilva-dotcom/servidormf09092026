@@ -38,7 +38,8 @@ export async function GET() {
         const lastAts = atsList[0];
         const lastDate = new Date(lastAts.startDate);
         const nextExpected = new Date(lastDate);
-        nextExpected.setDate(nextExpected.getDate() + 1825); // +5 anos
+        // O período inclui o dia inicial, então somamos 1824 dias
+        nextExpected.setDate(nextExpected.getDate() + 1824);
 
         const diffDays = Math.floor((today.getTime() - nextExpected.getTime()) / (1000 * 60 * 60 * 24));
         
@@ -122,7 +123,8 @@ export async function GET() {
           nextPeriodStart.setDate(nextPeriodStart.getDate() + 1);
           
           const nextPeriodEnd = new Date(nextPeriodStart);
-          nextPeriodEnd.setDate(nextPeriodEnd.getDate() + 1825);
+          // O período inclui o dia inicial, então somamos 1824 dias
+          nextPeriodEnd.setDate(nextPeriodEnd.getDate() + 1824);
           
           const diffDays = Math.floor((today.getTime() - nextPeriodEnd.getTime()) / (1000 * 60 * 60 * 24));
           

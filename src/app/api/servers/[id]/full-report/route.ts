@@ -55,7 +55,8 @@ export async function GET(
     let nextAtsQuinquenio = null;
     if (lastAts) {
       const lastDate = new Date(lastAts.startDate);
-      lastDate.setDate(lastDate.getDate() + 1825); // 5 anos
+      // O período inclui o dia inicial, então somamos 1824 dias
+      lastDate.setDate(lastDate.getDate() + 1824);
       nextAtsExpected = lastDate.toISOString().split("T")[0];
       nextAtsQuinquenio = `${lastAts.quinquenioNumber + 1}º Quinquênio`;
     }
@@ -98,7 +99,8 @@ export async function GET(
       endDate.setDate(endDate.getDate() + 1);
       // Próximo período tem duração de 5 anos (1825 dias)
       const nextEndDate = new Date(endDate);
-      nextEndDate.setDate(nextEndDate.getDate() + 1825);
+      // O período inclui o dia inicial, então somamos 1824 dias
+      nextEndDate.setDate(nextEndDate.getDate() + 1824);
       
       nextLicense = {
         startDate: endDate.toISOString().split("T")[0],

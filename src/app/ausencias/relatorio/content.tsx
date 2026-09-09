@@ -254,180 +254,72 @@ function ReportContent({
     year: "numeric",
   });
 
-  // Calcula totais gerais
-  const totalRegistros = data.reduce((acc, item) => acc + item.absences.length, 0);
-  const totalAusencias = data.reduce(
-    (acc, item) => acc + item.absences.filter((a) => a.type === "AUSENCIA").length,
-    0
-  );
-  const totalOrientacoes = data.reduce(
-    (acc, item) => acc + item.absences.filter((a) => a.type === "ORIENTACAO_TECNICA").length,
-    0
-  );
-
   return (
     <div className="report-container bg-white">
       {/* Cabeçalho Institucional - ÚNICO */}
-      <div className="mb-6 border-2 border-black p-4">
+      <div className="mb-4 border-b border-black pb-2">
         <div className="text-center">
-          <p className="text-sm font-bold uppercase">Governo do Estado de São Paulo</p>
-          <p className="text-sm font-bold uppercase">Secretaria da Educação</p>
-          <p className="mt-2 text-base font-bold uppercase">EE Profa. Marlene Frattini</p>
-          <div className="mt-3 border-t border-black pt-3">
-            <p className="text-lg font-bold uppercase">
-              Relatório de Ausências e Orientações Técnicas
-            </p>
-            <p className="text-base font-semibold">
-              Período: {getMonthName(month)}/{year}
-            </p>
-            <p className="mt-1 text-sm">Emitido em {today}</p>
-          </div>
+          <p className="text-xs font-bold uppercase">Governo do Estado de São Paulo</p>
+          <p className="text-xs font-bold uppercase">Secretaria da Educação</p>
+          <p className="text-xs font-bold uppercase">EE Profa. Marlene Frattini</p>
+          <p className="mt-2 text-sm font-bold uppercase">
+            Relatório de Ausências - {getMonthName(month)}/{year}
+          </p>
         </div>
       </div>
 
-      {/* Resumo Geral */}
-      <div className="mb-6 border-2 border-black p-4">
-        <h2 className="mb-3 border-b-2 border-black pb-2 text-base font-bold uppercase">
-          Resumo Geral
-        </h2>
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="border border-black p-3">
-            <p className="font-bold">Total de Servidores:</p>
-            <p className="mt-1 text-2xl font-bold">{data.length}</p>
-          </div>
-          <div className="border border-black p-3">
-            <p className="font-bold">Total de Ausências:</p>
-            <p className="mt-1 text-2xl font-bold">{totalAusencias}</p>
-          </div>
-          <div className="border border-black p-3">
-            <p className="font-bold">Total de Orientações:</p>
-            <p className="mt-1 text-2xl font-bold">{totalOrientacoes}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Registros por Servidor - Ordem Alfabética */}
-      <div className="mb-6">
-        <h2 className="mb-4 border-b-2 border-black pb-2 text-base font-bold uppercase">
-          Registros por Servidor
-        </h2>
-        
-        {data.map((item, index) => (
-          <div key={item.server.id} className="mb-6 border border-black p-4">
-            {/* Cabeçalho do Servidor */}
-            <div className="mb-3 border-b border-black pb-2">
-              <h3 className="text-base font-bold">
-                {index + 1}. {item.server.name}
-              </h3>
-              <p className="text-sm">
-                <strong>Cargo:</strong> {item.server.position} |{" "}
-                <strong>Categoria:</strong> {item.server.category}
-              </p>
-            </div>
-
-            {/* Resumo do Servidor */}
-            <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
-              <div>
-                <span className="font-bold">Total:</span> {item.absences.length}
-              </div>
-              <div>
-                <span className="font-bold">Ausências:</span>{" "}
-                {item.absences.filter((a) => a.type === "AUSENCIA").length}
-              </div>
-              <div>
-                <span className="font-bold">Orientações:</span>{" "}
-                {item.absences.filter((a) => a.type === "ORIENTACAO_TECNICA").length}
-              </div>
-            </div>
-
-            {/* Ausências do Servidor */}
-            {item.absences.filter((a) => a.type === "AUSENCIA").length > 0 && (
-              <div className="mb-3">
-                <p className="mb-2 text-sm font-bold">Ausências:</p>
-                <table className="w-full border-collapse border border-black text-xs">
-                  <thead>
-                    <tr className="print-table-header">
-                      <th className="border border-black px-2 py-1 text-left font-bold">Data</th>
-                      <th className="border border-black px-2 py-1 text-left font-bold">Tipo</th>
-                      <th className="border border-black px-2 py-1 text-left font-bold">
-                        Período/Dias
-                      </th>
-                      <th className="border border-black px-2 py-1 text-left font-bold">DOE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {item.absences
-                      .filter((a) => a.type === "AUSENCIA")
-                      .map((absence) => (
-                        <tr key={absence.id}>
-                          <td className="border border-black px-2 py-1">
-                            {formatDate(absence.systemDate)}
-                          </td>
-                          <td className="border border-black px-2 py-1">
-                            {getSubtypeLabel(absence.subtype)}
-                          </td>
-                          <td className="border border-black px-2 py-1">
-                            {isPeriodType(absence.subtype || "") ? (
-                              <>
-                                {formatDate(absence.startDate)} → {formatDate(absence.endDate)}
-                                <br />
-                                <strong>{absence.days} dias</strong>
-                              </>
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                          <td className="border border-black px-2 py-1">
-                            {absence.doeDate ? formatDate(absence.doeDate) : "-"}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Orientações Técnicas do Servidor */}
-            {item.absences.filter((a) => a.type === "ORIENTACAO_TECNICA").length > 0 && (
-              <div>
-                <p className="mb-2 text-sm font-bold">Orientações Técnicas:</p>
-                <table className="w-full border-collapse border border-black text-xs">
-                  <thead>
-                    <tr className="print-table-header">
-                      <th className="border border-black px-2 py-1 text-left font-bold">Data</th>
-                      <th className="border border-black px-2 py-1 text-left font-bold">Título</th>
-                      <th className="border border-black px-2 py-1 text-left font-bold">Local</th>
-                      <th className="border border-black px-2 py-1 text-left font-bold">
-                        Horário
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {item.absences
-                      .filter((a) => a.type === "ORIENTACAO_TECNICA")
-                      .map((absence) => (
-                        <tr key={absence.id}>
-                          <td className="border border-black px-2 py-1">
-                            {absence.dateTBD ? "A informar" : formatDate(absence.systemDate)}
-                          </td>
-                          <td className="border border-black px-2 py-1">{absence.title}</td>
-                          <td className="border border-black px-2 py-1">{absence.location}</td>
-                          <td className="border border-black px-2 py-1">
-                            {absence.startTime} - {absence.endTime}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Tabela Única - Todos os Registros */}
+      <table className="w-full border-collapse border border-black text-xs">
+        <thead>
+          <tr className="print-table-header">
+            <th className="border border-black px-1 py-1 text-left font-bold">Data</th>
+            <th className="border border-black px-1 py-1 text-left font-bold">Servidor</th>
+            <th className="border border-black px-1 py-1 text-left font-bold">Tipo</th>
+            <th className="border border-black px-1 py-1 text-left font-bold">Detalhes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item) => 
+            item.absences.map((absence) => (
+              <tr key={absence.id}>
+                <td className="border border-black px-1 py-0.5">
+                  {formatDate(absence.systemDate)}
+                </td>
+                <td className="border border-black px-1 py-0.5">
+                  {item.server.name}
+                </td>
+                <td className="border border-black px-1 py-0.5">
+                  {absence.type === "AUSENCIA" 
+                    ? getSubtypeLabel(absence.subtype)
+                    : "Orientação Técnica"}
+                </td>
+                <td className="border border-black px-1 py-0.5">
+                  {absence.type === "AUSENCIA" ? (
+                    <>
+                      {isPeriodType(absence.subtype || "") ? (
+                        <>
+                          {formatDate(absence.startDate)} → {formatDate(absence.endDate)} | {absence.days} dias
+                        </>
+                      ) : absence.hours ? (
+                        <>{absence.hours} horas/aulas</>
+                      ) : (
+                        "-"
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {absence.title} | {absence.location} | {absence.startTime}-{absence.endTime}
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
 
       {/* Rodapé - ÚNICO */}
-      <div className="mt-8 border-t-2 border-black pt-4 text-center text-xs">
-        <p>Documento gerado eletronicamente pelo Sistema de Gestão de Servidores</p>
+      <div className="mt-4 text-center text-xs">
         <p>EE Profa. Marlene Frattini • {today}</p>
       </div>
     </div>
