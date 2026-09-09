@@ -192,8 +192,39 @@ function ReportContent({ report, server }: { report: FullReport; server: Server 
         <h2>1. DADOS DO SERVIDOR</h2>
         <div className="rf-data">
           <p><strong>Nome:</strong> {server.name}</p>
-          <p><strong>CPF:</strong> {formatCPF(server.cpf)} {server.rgCin && ` | <strong>RG:</strong> ${server.rgCin}`}</p>
-          <p><strong>Cargo:</strong> {server.position} | <strong>Categoria:</strong> {server.category} {server.faixa && `| <strong>Faixa:</strong> ${server.faixa}`} {server.nivel && `| <strong>Nível:</strong> ${server.nivel}`}</p>
+          <p>
+            <strong>CPF:</strong> {formatCPF(server.cpf)}
+            {server.rgCin && (
+              <>
+                {" | "}
+                <strong>RG:</strong> {server.rgCin}
+              </>
+            )}
+          </p>
+          <p>
+            <strong>Cargo:</strong> {server.position}
+            {server.designatedFunction && (
+              <>
+                {" | "}
+                <strong>DESIGNADO:</strong> {server.designatedFunction}
+              </>
+            )}
+          </p>
+          <p>
+            <strong>Categoria:</strong> {server.category}
+            {server.faixa && (
+              <>
+                {" | "}
+                <strong>Faixa:</strong> {server.faixa}
+              </>
+            )}
+            {server.nivel && (
+              <>
+                {" | "}
+                <strong>Nível:</strong> {server.nivel}
+              </>
+            )}
+          </p>
         </div>
       </div>
 

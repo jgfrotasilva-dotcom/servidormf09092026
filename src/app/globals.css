@@ -525,6 +525,38 @@
     color: black !important;
   }
 
+  /* ============ LIMPEZA TOTAL PARA RELATÓRIO FUNCIONAL ============ */
+  /* Remove TODOS os elementos gráficos na impressão */
+  .report-func,
+  .report-func * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background-image: none !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Garante que apenas bordas pretas sólidas apareçam */
+  .report-func table,
+  .report-func th,
+  .report-func td,
+  .report-func div,
+  .report-func p {
+    border-color: black !important;
+  }
+
+  /* Remove backgrounds coloridos */
+  .report-func th {
+    background: white !important;
+    font-weight: bold !important;
+  }
+
+  /* Remove linhas alternadas */
+  .report-func tr:nth-child(even),
+  .report-func tr:nth-child(odd) {
+    background: white !important;
+  }
+
   /* ============ RELATÓRIO FUNCIONAL - MODELO OFICIAL COMPACTO ============ */
   .report-func {
     font-family: "Times New Roman", Times, serif !important;
