@@ -18,6 +18,138 @@
   }
 }
 
+/* ============ RELATÓRIO FUNCIONAL - ESTILOS PARA TELA ============ */
+.report-func {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 10pt;
+  color: black;
+  line-height: 1.3;
+  max-width: 21cm;
+  margin: 0 auto;
+  padding: 1cm;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.rf-header {
+  text-align: center;
+  border-bottom: 1px solid black;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.rf-header p {
+  font-size: 9pt;
+  font-weight: normal;
+  margin: 2px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3pt;
+}
+
+.rf-school {
+  font-weight: bold;
+  font-size: 10pt;
+  margin-top: 6px;
+}
+
+.rf-title {
+  text-align: center;
+  border-bottom: 1px solid black;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+
+.rf-title h1 {
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+}
+
+.rf-title p {
+  font-size: 9pt;
+  margin-top: 4px;
+}
+
+.rf-section {
+  margin-bottom: 12px;
+}
+
+.rf-section h2 {
+  font-size: 10pt;
+  font-weight: bold;
+  border-bottom: 1px solid black;
+  padding-bottom: 3px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.rf-info {
+  font-size: 9pt;
+  margin-bottom: 6px;
+}
+
+.rf-data {
+  font-size: 9pt;
+  line-height: 1.4;
+}
+
+.rf-data p {
+  margin: 3px 0;
+}
+
+.rf-subtitle {
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 6px 0 4px 0;
+}
+
+.rf-next {
+  font-size: 9pt;
+  margin-top: 6px;
+  padding: 4px;
+  border: 1px solid #999;
+  background: #f9f9f9;
+}
+
+.report-func table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8.5pt;
+  margin: 4px 0;
+}
+
+.report-func th,
+.report-func td {
+  border: 1px solid black;
+  padding: 4px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.report-func th {
+  background: #f0f0f0;
+  font-weight: bold;
+  font-size: 8.5pt;
+}
+
+.report-func td {
+  font-size: 8.5pt;
+}
+
+.rf-footer {
+  text-align: center;
+  border-top: 1px solid black;
+  padding-top: 8px;
+  margin-top: 12px;
+  font-size: 8pt;
+}
+
+.rf-footer p {
+  margin: 2px 0;
+}
+
 /* ============ ESTILOS DE IMPRESSÃO - VISUAL MODERNO ============ */
 @media print {
   /* Força impressão de cores e backgrounds */
@@ -391,5 +523,177 @@
   .report-container a {
     text-decoration: none !important;
     color: black !important;
+  }
+
+  /* ============ RELATÓRIO FUNCIONAL - MODELO OFICIAL COMPACTO ============ */
+  .report-func {
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 10pt !important;
+    color: black !important;
+    line-height: 1.3 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove TODOS os backgrounds e gradientes */
+  .report-func * {
+    background: white !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: black !important;
+  }
+
+  /* Cabeçalho Oficial - Simples */
+  .rf-header {
+    text-align: center !important;
+    border-bottom: 1px solid black !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .rf-header p {
+    font-size: 9pt !important;
+    font-weight: normal !important;
+    margin: 2px 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3pt !important;
+  }
+
+  .rf-school {
+    font-weight: bold !important;
+    font-size: 10pt !important;
+    margin-top: 6px !important;
+  }
+
+  /* Título */
+  .rf-title {
+    text-align: center !important;
+    border-bottom: 1px solid black !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .rf-title h1 {
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    margin: 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5pt !important;
+  }
+
+  .rf-title p {
+    font-size: 9pt !important;
+    margin-top: 4px !important;
+  }
+
+  /* Seções */
+  .rf-section {
+    margin-bottom: 12px !important;
+    page-break-inside: avoid !important;
+  }
+
+  .rf-section h2 {
+    font-size: 10pt !important;
+    font-weight: bold !important;
+    border-bottom: 1px solid black !important;
+    padding-bottom: 3px !important;
+    margin-bottom: 6px !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Informações */
+  .rf-info {
+    font-size: 9pt !important;
+    margin-bottom: 6px !important;
+  }
+
+  .rf-data {
+    font-size: 9pt !important;
+    line-height: 1.4 !important;
+  }
+
+  .rf-data p {
+    margin: 3px 0 !important;
+  }
+
+  .rf-subtitle {
+    font-size: 9pt !important;
+    font-weight: bold !important;
+    margin: 6px 0 4px 0 !important;
+  }
+
+  .rf-next {
+    font-size: 9pt !important;
+    margin-top: 6px !important;
+    padding: 4px !important;
+    border: 1px solid black !important;
+  }
+
+  /* Tabelas - Compactas */
+  .report-func table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 8.5pt !important;
+    margin: 4px 0 !important;
+  }
+
+  .report-func th,
+  .report-func td {
+    border: 1px solid black !important;
+    padding: 4px 6px !important;
+    text-align: left !important;
+    vertical-align: top !important;
+  }
+
+  .report-func th {
+    background: white !important;
+    font-weight: bold !important;
+    font-size: 8.5pt !important;
+  }
+
+  .report-func td {
+    font-size: 8.5pt !important;
+  }
+
+  /* Rodapé */
+  .rf-footer {
+    text-align: center !important;
+    border-top: 1px solid black !important;
+    padding-top: 8px !important;
+    margin-top: 12px !important;
+    font-size: 8pt !important;
+  }
+
+  .rf-footer p {
+    margin: 2px 0 !important;
+  }
+
+  /* Remove todas as cores e elementos gráficos */
+  .report-func [class*="bg-"],
+  .report-func [class*="border-"],
+  .report-func [class*="text-"] {
+    background: white !important;
+    border-color: black !important;
+    color: black !important;
+  }
+
+  /* Quebras de página inteligentes */
+  .rf-section {
+    page-break-inside: avoid !important;
+  }
+
+  .report-func table {
+    page-break-inside: auto !important;
+  }
+
+  .report-func tr {
+    page-break-inside: avoid !important;
+  }
+
+  /* Margens da página */
+  @page {
+    size: A4 !important;
+    margin: 1.5cm !important;
   }
 }
