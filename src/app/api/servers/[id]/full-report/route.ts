@@ -114,8 +114,11 @@ export async function GET(
       nextLicense = null;
     }
 
-    // Calcula nível atual
-    const currentLevel = evolutions.length > 0 ? evolutions[evolutions.length - 1].toLevel : "I";
+    // Calcula nível atual - apenas para cargos elegíveis para evolução funcional
+    const hasEvolution = ["PEB I", "PEB II", "DIRETOR DE ESCOLA"].includes(server.position);
+    const currentLevel = hasEvolution && evolutions.length > 0 
+      ? evolutions[evolutions.length - 1].toLevel 
+      : null;
 
     // Calcula saldo total de licença
     const totalLicenseBalance = certificates.reduce((sum, c) => sum + c.currentBalance, 0);
@@ -142,6 +145,7 @@ export async function GET(
         currentLevel,
         totalGranted: evolutions.length,
         nextEvolution,
+        hasEvolution,
       },
     });
   } catch (error) {

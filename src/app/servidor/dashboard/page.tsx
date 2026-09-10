@@ -39,9 +39,10 @@ interface FullReport {
   };
   evolution: {
     granted: any[];
-    currentLevel: string;
+    currentLevel: string | null;
     totalGranted: number;
     nextEvolution: any;
+    hasEvolution: boolean;
   };
 }
 
@@ -125,7 +126,7 @@ export default function DashboardServidorPage() {
                   <p className="text-sm text-slate-600">Categoria</p>
                   <p className="font-medium text-slate-900">{server.category}</p>
                 </div>
-                {report.evolution.currentLevel && (
+                {report.evolution.hasEvolution && report.evolution.currentLevel && (
                   <div>
                     <p className="text-sm text-slate-600">Nível Atual</p>
                     <p className="font-medium text-slate-900">{report.evolution.currentLevel}</p>
@@ -215,17 +216,18 @@ export default function DashboardServidorPage() {
               )}
             </div>
 
-            {/* Evolução Funcional */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-6 w-6 text-purple-600" />
-                  <h2 className="text-lg font-bold text-slate-900">Evolução Funcional</h2>
+            {/* Evolução Funcional - apenas para cargos elegíveis */}
+            {report.evolution.hasEvolution && (
+              <div className="bg-white rounded-xl shadow p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-6 w-6 text-purple-600" />
+                    <h2 className="text-lg font-bold text-slate-900">Evolução Funcional</h2>
+                  </div>
+                  <span className="text-sm text-slate-500">
+                    {report.evolution.totalGranted} evolução(ões)
+                  </span>
                 </div>
-                <span className="text-sm text-slate-500">
-                  {report.evolution.totalGranted} evolução(ões)
-                </span>
-              </div>
               
               {report.evolution.granted.length > 0 ? (
                 <div className="space-y-3">
@@ -256,6 +258,7 @@ export default function DashboardServidorPage() {
                 <p className="text-sm text-slate-500">Nenhuma evolução registrada ainda</p>
               )}
             </div>
+            )}
 
             {/* Meus Requerimentos */}
             <MeusRequerimentos serverId={server.id} />
