@@ -7,8 +7,10 @@ import { formatDate } from "@/lib/format";
 
 interface Request {
   id: string;
+  requestNumber: string;
   type: string;
   description: string | null;
+  outrosDescricao: string | null;
   status: string;
   createdAt: string;
   responseNotes: string | null;
@@ -23,6 +25,7 @@ export default function RequerimentosPage() {
   const [showModal, setShowModal] = useState(false);
   const [newType, setNewType] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [outrosDescricao, setOutrosDescricao] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -64,6 +67,7 @@ export default function RequerimentosPage() {
           serverId,
           type: newType,
           description: newDescription || null,
+          outrosDescricao: outrosDescricao || null,
         }),
       });
 
@@ -73,9 +77,15 @@ export default function RequerimentosPage() {
         return;
       }
 
+      const data = await res.json();
       setShowModal(false);
       setNewType("");
       setNewDescription("");
+      setOutrosDescricao("");
+      
+      // Mostra mensagem de sucesso com número do requerimento
+      alert(`Requerimento criado com sucesso!\n\nNúmero: ${data.request.requestNumber}`);
+      
       loadRequests(serverId);
     } catch (error) {
       alert("Erro de conexão. Tente novamente.");
@@ -155,6 +165,140 @@ export default function RequerimentosPage() {
     }
   };
 
+  const handleGenerateOfficialDocument = async (requestId: string) => {
+    try {
+      const res = await fetch(`/api/requests/${requestId}/official-document`);
+      const data = await res.json();
+      
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      // Cria documento HTML para impressão
+      const htmlContent = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Requerimento ${data.requestNumber}</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 18px;
+      margin: 5px 0;
+    }
+    .header h2 {
+      font-size: 16px;
+      margin: 5px 0;
+    }
+    .request-info {
+      margin: 20px 0;
+    }
+    .request-info p {
+      margin: 10px 0;
+    }
+    .server-data {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+    }
+    .server-data h3 {
+      margin-top: 0;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+    }
+    .description {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+    }
+    .description h3 {
+      margin-top: 0;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+    }
+    .footer {
+      margin-top: 50px;
+      text-align: center;
+      border-top: 1px solid #ccc;
+      padding-top: 20px;
+    }
+    @media print {
+      body {
+        margin: 0;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>GOVERNO DO ESTADO DE SÃO PAULO</h1>
+    <h2>SECRETARIA DA EDUCAÇÃO</h2>
+    <h2>EE PROFA. MARLENE FRATTINI</h2>
+  </div>
+
+  <div class="request-info">
+    <p><strong>REQUERIMENTO Nº:</strong> ${data.requestNumber}</p>
+    <p><strong>DATA:</strong> ${data.date}</p>
+    <p><strong>TIPO:</strong> ${data.type}</p>
+  </div>
+
+  <div class="server-data">
+    <h3>DADOS DO SERVIDOR</h3>
+    <p><strong>Nome:</strong> ${data.server.name}</p>
+    <p><strong>CPF:</strong> ${data.server.cpf}</p>
+    <p><strong>Cargo:</strong> ${data.server.position}</p>
+    <p><strong>Categoria:</strong> ${data.server.category}</p>
+  </div>
+
+  <div class="description">
+    <h3>DESCRIÇÃO DO REQUERIMENTO</h3>
+    <p>${data.description}</p>
+    ${data.outrosDescricao ? `<p><strong>Detalhamento:</strong> ${data.outrosDescricao}</p>` : ''}
+  </div>
+
+  <div class="footer">
+    <p>Documento gerado eletronicamente pelo Sistema de Gestão de Servidores</p>
+    <p>EE Profa. Marlene Frattini • ${data.date}</p>
+  </div>
+
+  <script>
+    window.onload = function() {
+      window.print();
+    }
+  </script>
+</body>
+</html>
+      `;
+
+      // Abre nova janela com o documento
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+      }
+    } catch (error) {
+      console.error("Erro ao gerar documento:", error);
+      alert("Erro ao gerar documento oficial");
+    }
+  };
+
   if (!serverId) return null;
 
   return (
@@ -211,23 +355,35 @@ export default function RequerimentosPage() {
             {requests.map((request) => (
               <div key={request.id} className="bg-white rounded-xl shadow p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 flex-1">
                     {getStatusIcon(request.status)}
-                    <div>
-                      <h3 className="font-bold text-slate-900">{request.type}</h3>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-slate-900">{request.type}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
+                          {getStatusLabel(request.status)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mb-1">
+                        <strong>Nº:</strong> {request.requestNumber}
+                      </p>
                       <p className="text-sm text-slate-600">
                         Criado em {formatDate(request.createdAt)}
                       </p>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
-                    {getStatusLabel(request.status)}
-                  </span>
                 </div>
 
                 {request.description && (
                   <div className="mb-4 p-3 bg-slate-50 rounded-lg">
                     <p className="text-sm text-slate-700">{request.description}</p>
+                  </div>
+                )}
+
+                {request.outrosDescricao && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-xs font-medium text-amber-900 mb-1">Detalhamento:</p>
+                    <p className="text-sm text-amber-800">{request.outrosDescricao}</p>
                   </div>
                 )}
 
@@ -250,6 +406,14 @@ export default function RequerimentosPage() {
                     </div>
                   </button>
                 )}
+
+                <button
+                  onClick={() => handleGenerateOfficialDocument(request.id)}
+                  className="mt-3 w-full flex items-center justify-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-900">Gerar Documento Oficial</span>
+                </button>
               </div>
             ))}
           </div>
@@ -295,6 +459,22 @@ export default function RequerimentosPage() {
                 />
               </div>
 
+              {newType === "OUTRO" && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Especifique sua necessidade *
+                  </label>
+                  <textarea
+                    value={outrosDescricao}
+                    onChange={(e) => setOutrosDescricao(e.target.value)}
+                    rows={4}
+                    required
+                    placeholder="Descreva detalhadamente o que você precisa..."
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+                  />
+                </div>
+              )}
+
               <div className="flex gap-2 pt-4">
                 <button
                   type="button"
@@ -302,6 +482,7 @@ export default function RequerimentosPage() {
                     setShowModal(false);
                     setNewType("");
                     setNewDescription("");
+                    setOutrosDescricao("");
                   }}
                   className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg font-medium hover:bg-slate-300 transition-colors"
                 >

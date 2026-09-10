@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { requests } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { generateRequestNumber } from "@/lib/request-number";
 
 /**
  * GET /api/requests
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { serverId, type, description } = body;
+    const { serverId, type, description, outrosDescricao } = body;
 
     if (!serverId || !type) {
       return NextResponse.json(
@@ -48,12 +49,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Gera número automático do requerimento
+    const requestNumber = await generateRequestNumber();
+
     const [newRequest] = await db
       .insert(requests)
       .values({
+        requestNumber,
         serverId,
         type,
         description: description || null,
+        outrosDescricao: outrosDescricao || null,
       })
       .returning();
 

@@ -176,11 +176,13 @@ export type DesignatedFunctionCode = (typeof DESIGNATED_FUNCTIONS)[number]["code
 // Tabela de Requerimentos
 export const requests = pgTable("requests", {
   id: uuid("id").primaryKey().defaultRandom(),
+  requestNumber: text("request_number").notNull().unique(), // Número do requerimento (REQ-YYYY-NNNN)
   serverId: uuid("server_id")
     .notNull()
     .references(() => servers.id, { onDelete: "cascade" }),
   type: text("type").notNull(), // Tipo de vantagem solicitada
   description: text("description"), // Descrição do requerimento
+  outrosDescricao: text("outros_descricao"), // Descrição detalhada quando tipo = OUTROS
   status: text("status").notNull().default("pendente"), // pendente, aprovado, rejeitado
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
