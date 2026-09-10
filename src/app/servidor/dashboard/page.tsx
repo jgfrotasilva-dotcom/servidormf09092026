@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   CheckCircle,
   LogOut,
+  Download,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
@@ -349,6 +350,38 @@ function MeusRequerimentos({ serverId }: { serverId: string }) {
 
   const recentRequests = requests.slice(0, 3);
 
+  const handleDownloadDocument = async (requestId: string, fileName: string) => {
+    try {
+      const res = await fetch(`/api/requests/${requestId}/document`);
+      const data = await res.json();
+      
+      if (data.documentUrl) {
+        // Converter base64 para blob
+        const base64Data = data.documentUrl.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: data.documentUrl.split(';')[0].split(':')[1] });
+        
+        // Criar URL e fazer download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error("Erro ao baixar documento:", error);
+      alert("Erro ao baixar documento");
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow p-6">
       <div className="flex items-start justify-between mb-4">
@@ -388,6 +421,15 @@ function MeusRequerimentos({ serverId }: { serverId: string }) {
                   <p className="text-xs text-slate-700 mt-1 italic">
                     "{request.responseNotes}"
                   </p>
+                )}
+                {request.documentName && request.status === "aprovado" && (
+                  <button
+                    onClick={() => handleDownloadDocument(request.id, request.documentName)}
+                    className="flex items-center gap-1 mt-2 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                  >
+                    <Download className="h-3 w-3" />
+                    Baixar Documento: {request.documentName}
+                  </button>
                 )}
               </div>
             </div>

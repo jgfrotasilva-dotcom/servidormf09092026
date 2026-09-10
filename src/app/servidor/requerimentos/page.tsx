@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Plus, Clock, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { FileText, Plus, Clock, CheckCircle, XCircle, ArrowLeft, Download } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
 interface Request {
@@ -12,6 +12,7 @@ interface Request {
   status: string;
   createdAt: string;
   responseNotes: string | null;
+  documentName: string | null;
 }
 
 export default function RequerimentosPage() {
@@ -122,6 +123,38 @@ export default function RequerimentosPage() {
     }
   };
 
+  const handleDownloadDocument = async (requestId: string, fileName: string) => {
+    try {
+      const res = await fetch(`/api/requests/${requestId}/document`);
+      const data = await res.json();
+      
+      if (data.documentUrl) {
+        // Converter base64 para blob
+        const base64Data = data.documentUrl.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: data.documentUrl.split(';')[0].split(':')[1] });
+        
+        // Criar URL e fazer download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error("Erro ao baixar documento:", error);
+      alert("Erro ao baixar documento");
+    }
+  };
+
   if (!serverId) return null;
 
   return (
@@ -203,6 +236,19 @@ export default function RequerimentosPage() {
                     <p className="text-xs font-medium text-blue-900 mb-1">Resposta:</p>
                     <p className="text-sm text-blue-800">{request.responseNotes}</p>
                   </div>
+                )}
+
+                {request.documentName && request.status === "aprovado" && (
+                  <button
+                    onClick={() => handleDownloadDocument(request.id, request.documentName!)}
+                    className="mt-3 flex items-center gap-2 p-3 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors"
+                  >
+                    <Download className="h-5 w-5 text-indigo-600" />
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-medium text-indigo-900">Documento Anexado</p>
+                      <p className="text-xs text-indigo-700">{request.documentName}</p>
+                    </div>
+                  </button>
                 )}
               </div>
             ))}
