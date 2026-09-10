@@ -52,7 +52,7 @@ export async function GET(
     };
 
     const documentData = {
-      requestNumber: req.request.requestNumber,
+      id: req.request.id,
       date: formattedDate,
       server: {
         name: req.server.name,
@@ -62,7 +62,6 @@ export async function GET(
       },
       type: getTypeLabel(req.request.type),
       description: req.request.description || "Sem descrição adicional",
-      outrosDescricao: req.request.outrosDescricao || null,
       status: req.request.status,
     };
 

@@ -7,10 +7,8 @@ import { formatDate } from "@/lib/format";
 
 interface Request {
   id: string;
-  requestNumber: string;
   type: string;
   description: string | null;
-  outrosDescricao: string | null;
   status: string;
   createdAt: string;
   responseNotes: string | null;
@@ -25,7 +23,6 @@ export default function RequerimentosPage() {
   const [showModal, setShowModal] = useState(false);
   const [newType, setNewType] = useState("");
   const [newDescription, setNewDescription] = useState("");
-  const [outrosDescricao, setOutrosDescricao] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -67,7 +64,6 @@ export default function RequerimentosPage() {
           serverId,
           type: newType,
           description: newDescription || null,
-          outrosDescricao: outrosDescricao || null,
         }),
       });
 
@@ -77,15 +73,9 @@ export default function RequerimentosPage() {
         return;
       }
 
-      const data = await res.json();
       setShowModal(false);
       setNewType("");
       setNewDescription("");
-      setOutrosDescricao("");
-      
-      // Mostra mensagem de sucesso com número do requerimento
-      alert(`Requerimento criado com sucesso!\n\nNúmero: ${data.request.requestNumber}`);
-      
       loadRequests(serverId);
     } catch (error) {
       alert("Erro de conexão. Tente novamente.");
@@ -364,9 +354,6 @@ export default function RequerimentosPage() {
                           {getStatusLabel(request.status)}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mb-1">
-                        <strong>Nº:</strong> {request.requestNumber}
-                      </p>
                       <p className="text-sm text-slate-600">
                         Criado em {formatDate(request.createdAt)}
                       </p>
@@ -377,13 +364,6 @@ export default function RequerimentosPage() {
                 {request.description && (
                   <div className="mb-4 p-3 bg-slate-50 rounded-lg">
                     <p className="text-sm text-slate-700">{request.description}</p>
-                  </div>
-                )}
-
-                {request.outrosDescricao && (
-                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-xs font-medium text-amber-900 mb-1">Detalhamento:</p>
-                    <p className="text-sm text-amber-800">{request.outrosDescricao}</p>
                   </div>
                 )}
 
@@ -459,22 +439,6 @@ export default function RequerimentosPage() {
                 />
               </div>
 
-              {newType === "OUTRO" && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Especifique sua necessidade *
-                  </label>
-                  <textarea
-                    value={outrosDescricao}
-                    onChange={(e) => setOutrosDescricao(e.target.value)}
-                    rows={4}
-                    required
-                    placeholder="Descreva detalhadamente o que você precisa..."
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
-                  />
-                </div>
-              )}
-
               <div className="flex gap-2 pt-4">
                 <button
                   type="button"
@@ -482,7 +446,6 @@ export default function RequerimentosPage() {
                     setShowModal(false);
                     setNewType("");
                     setNewDescription("");
-                    setOutrosDescricao("");
                   }}
                   className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg font-medium hover:bg-slate-300 transition-colors"
                 >
