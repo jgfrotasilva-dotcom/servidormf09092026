@@ -244,7 +244,6 @@ export default function RequerimentosPage() {
   </div>
 
   <div class="request-info">
-    <p><strong>REQUERIMENTO Nº:</strong> ${data.requestNumber}</p>
     <p><strong>DATA:</strong> ${data.date}</p>
     <p><strong>TIPO:</strong> ${data.type}</p>
   </div>

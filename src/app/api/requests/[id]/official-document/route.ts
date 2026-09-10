@@ -52,7 +52,6 @@ export async function GET(
     };
 
     const documentData = {
-      id: req.request.id,
       date: formattedDate,
       server: {
         name: req.server.name,
