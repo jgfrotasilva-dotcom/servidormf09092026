@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Cake,
   LogOut,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -28,7 +29,7 @@ export default function AdminDashboardPage() {
 
   const handleLogout = () => {
     localStorage.removeItem("admin");
-    router.push("/admin/login");
+    router.push("/");
   };
 
   const menuItems = [
@@ -66,6 +67,13 @@ export default function AdminDashboardPage() {
       icon: Gift,
       href: "/vantagens",
       color: "from-purple-500 to-purple-600",
+    },
+    {
+      title: "Requerimentos",
+      description: "Aprovar ou rejeitar solicitações",
+      icon: FileText,
+      href: "/admin/requerimentos",
+      color: "from-amber-500 to-amber-600",
     },
     {
       title: "Relatórios",

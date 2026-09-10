@@ -78,7 +78,7 @@ export default function DashboardServidorPage() {
 
   const handleLogout = () => {
     localStorage.removeItem("servidor");
-    router.push("/servidor/login");
+    router.push("/");
   };
 
   if (!server) return null;
@@ -98,7 +98,7 @@ export default function DashboardServidorPage() {
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors"
             >
               <LogOut className="h-4 w-4" />
-              Sair
+              Sair do Sistema
             </button>
           </div>
         </div>
@@ -256,6 +256,9 @@ export default function DashboardServidorPage() {
               )}
             </div>
 
+            {/* Meus Requerimentos */}
+            <MeusRequerimentos serverId={server.id} />
+
             {/* Botão Requerimento */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow p-6">
               <div className="flex items-center justify-between">
@@ -269,7 +272,7 @@ export default function DashboardServidorPage() {
                   onClick={() => router.push("/servidor/requerimentos")}
                   className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors"
                 >
-                  Ver Requerimentos
+                  Ver Todos
                 </button>
               </div>
             </div>
@@ -281,6 +284,116 @@ export default function DashboardServidorPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function MeusRequerimentos({ serverId }: { serverId: string }) {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadRequests();
+  }, [serverId]);
+
+  const loadRequests = async () => {
+    try {
+      const res = await fetch(`/api/requests?serverId=${serverId}`);
+      const data = await res.json();
+      setRequests(data.requests || []);
+    } catch (error) {
+      console.error("Erro ao carregar requerimentos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "pendente":
+        return <AlertTriangle className="h-5 w-5 text-amber-600" />;
+      case "aprovado":
+        return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case "rejeitado":
+        return <AlertTriangle className="h-5 w-5 text-red-600" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pendente":
+        return "Pendente";
+      case "aprovado":
+        return "Aprovado";
+      case "rejeitado":
+        return "Rejeitado";
+      default:
+        return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pendente":
+        return "bg-amber-50 text-amber-900 border-amber-200";
+      case "aprovado":
+        return "bg-green-50 text-green-900 border-green-200";
+      case "rejeitado":
+        return "bg-red-50 text-red-900 border-red-200";
+      default:
+        return "bg-slate-50 text-slate-900 border-slate-200";
+    }
+  };
+
+  const recentRequests = requests.slice(0, 3);
+
+  return (
+    <div className="bg-white rounded-xl shadow p-6">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <FileText className="h-6 w-6 text-indigo-600" />
+          <h2 className="text-lg font-bold text-slate-900">Meus Requerimentos</h2>
+        </div>
+        <span className="text-sm text-slate-500">
+          {requests.length} total
+        </span>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : recentRequests.length === 0 ? (
+        <p className="text-sm text-slate-500 text-center py-4">
+          Nenhum requerimento ainda
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {recentRequests.map((request) => (
+            <div key={request.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+              {getStatusIcon(request.status)}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-medium text-slate-900">{request.type}</p>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
+                    {getStatusLabel(request.status)}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600">
+                  {formatDate(request.createdAt)}
+                </p>
+                {request.responseNotes && (
+                  <p className="text-xs text-slate-700 mt-1 italic">
+                    "{request.responseNotes}"
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

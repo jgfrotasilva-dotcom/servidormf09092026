@@ -185,6 +185,8 @@ export const requests = pgTable("requests", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   responseNotes: text("response_notes"), // Observações da resposta
+  documentUrl: text("document_url"), // URL do documento anexado pela gestão
+  documentName: text("document_name"), // Nome do documento
 });
 
 export type Request = typeof requests.$inferSelect;

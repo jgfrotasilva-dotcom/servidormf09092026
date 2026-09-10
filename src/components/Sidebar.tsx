@@ -27,6 +27,16 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
 
+  // Não mostrar Sidebar na página inicial, área do servidor, login da gestão ou dashboard da gestão
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/servidor") ||
+    pathname === "/admin/login" ||
+    pathname === "/admin/dashboard"
+  ) {
+    return null;
+  }
+
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
       <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-5">
