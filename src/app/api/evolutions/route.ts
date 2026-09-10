@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { functionalEvolutions, servers } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -76,8 +76,10 @@ export async function POST(request: NextRequest) {
       .select()
       .from(functionalEvolutions)
       .where(
-        eq(functionalEvolutions.serverId, serverId) &&
-        eq(functionalEvolutions.evolutionNumber, evolutionNumber)
+        and(
+          eq(functionalEvolutions.serverId, serverId),
+          eq(functionalEvolutions.evolutionNumber, evolutionNumber)
+        )
       )
       .limit(1);
 
