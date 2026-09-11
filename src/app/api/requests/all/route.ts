@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET() {
   try {
+    // Busca todos os requerimentos
     const requestsList = await db
       .select({
         id: requests.id,
@@ -25,26 +26,31 @@ export async function GET() {
       .leftJoin(servers, eq(requests.serverId, servers.id))
       .orderBy(desc(requests.createdAt));
 
-    // Busca interações para cada requerimento
-    const requestsWithInteractions = await Promise.all(
-      requestsList.map(async (req) => {
-        const interactions = await db
-          .select()
-          .from(requestInteractions)
-          .where(eq(requestInteractions.requestId, req.id))
-          .orderBy(asc(requestInteractions.createdAt));
+    // Busca TODAS as interações de uma vez
+    const allInteractions = await db
+      .select()
+      .from(requestInteractions)
+      .orderBy(asc(requestInteractions.createdAt));
 
-        return {
-          ...req,
-          interactions: interactions.map((i) => ({
-            id: i.id,
-            from: i.from,
-            message: i.message,
-            createdAt: i.createdAt,
-          })),
-        };
-      })
-    );
+    // Agrupa interações por requestId
+    const interactionsByRequest: Record<string, any[]> = {};
+    allInteractions.forEach((interaction) => {
+      if (!interactionsByRequest[interaction.requestId]) {
+        interactionsByRequest[interaction.requestId] = [];
+      }
+      interactionsByRequest[interaction.requestId].push({
+        id: interaction.id,
+        from: interaction.from,
+        message: interaction.message,
+        createdAt: interaction.createdAt,
+      });
+    });
+
+    // Monta resultado final com interações
+    const requestsWithInteractions = requestsList.map((req) => ({
+      ...req,
+      interactions: interactionsByRequest[req.id] || [],
+    }));
 
     return NextResponse.json({ 
       requests: requestsWithInteractions, 
