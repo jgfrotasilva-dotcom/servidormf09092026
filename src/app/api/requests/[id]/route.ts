@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * PUT /api/requests/[id]
- * Atualiza status e observações de um requerimento
+ * Atualiza um requerimento (apenas se estiver pendente)
  */
 export async function PUT(
   request: NextRequest,
@@ -14,42 +14,124 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status, responseNotes } = body;
+    const { serverId, type, description } = body;
 
-    if (!status) {
+    if (!serverId || !type) {
       return NextResponse.json(
-        { error: "Status é obrigatório" },
+        { error: "Campos obrigatórios: serverId, type" },
         { status: 400 }
       );
     }
 
-    if (!["pendente", "aprovado", "rejeitado"].includes(status)) {
-      return NextResponse.json(
-        { error: "Status inválido. Use: pendente, aprovado ou rejeitado" },
-        { status: 400 }
-      );
-    }
-
-    const [updatedRequest] = await db
-      .update(requests)
-      .set({
-        status,
-        responseNotes: responseNotes || null,
-        updatedAt: new Date(),
-      })
+    // Busca requerimento existente
+    const [existing] = await db
+      .select()
+      .from(requests)
       .where(eq(requests.id, id))
-      .returning();
+      .limit(1);
 
-    if (!updatedRequest) {
+    if (!existing) {
       return NextResponse.json(
         { error: "Requerimento não encontrado" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ request: updatedRequest });
+    // Verifica se pertence ao servidor
+    if (existing.serverId !== serverId) {
+      return NextResponse.json(
+        { error: "Você não tem permissão para editar este requerimento" },
+        { status: 403 }
+      );
+    }
+
+    // Verifica se está pendente
+    if (existing.status !== "pendente") {
+      return NextResponse.json(
+        { error: "Somente requerimentos pendentes podem ser editados" },
+        { status: 400 }
+      );
+    }
+
+    const [updated] = await db
+      .update(requests)
+      .set({
+        type,
+        description: description || null,
+      })
+      .where(eq(requests.id, id))
+      .returning();
+
+    return NextResponse.json({ request: updated });
   } catch (error) {
     console.error("Erro ao atualizar requerimento:", error);
-    return NextResponse.json({ error: "Erro ao atualizar requerimento" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro ao atualizar requerimento" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/requests/[id]
+ * Exclui um requerimento (apenas se estiver pendente)
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const serverId = searchParams.get("serverId");
+
+    if (!serverId) {
+      return NextResponse.json(
+        { error: "serverId é obrigatório" },
+        { status: 400 }
+      );
+    }
+
+    // Busca requerimento existente
+    const [existing] = await db
+      .select()
+      .from(requests)
+      .where(eq(requests.id, id))
+      .limit(1);
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Requerimento não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    // Verifica se pertence ao servidor
+    if (existing.serverId !== serverId) {
+      return NextResponse.json(
+        { error: "Você não tem permissão para excluir este requerimento" },
+        { status: 403 }
+      );
+    }
+
+    // Verifica se está pendente
+    if (existing.status !== "pendente") {
+      return NextResponse.json(
+        { error: "Somente requerimentos pendentes podem ser excluídos" },
+        { status: 400 }
+      );
+    }
+
+    await db
+      .delete(requests)
+      .where(eq(requests.id, id));
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao excluir requerimento:", error);
+    return NextResponse.json(
+      { error: "Erro ao excluir requerimento" },
+      { status: 500 }
+    );
   }
 }

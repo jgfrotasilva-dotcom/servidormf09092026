@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Plus, Clock, CheckCircle, XCircle, ArrowLeft, Download } from "lucide-react";
+import { FileText, Plus, Clock, CheckCircle, XCircle, ArrowLeft, Download, Edit, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
 interface Request {
@@ -21,9 +21,11 @@ export default function RequerimentosPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingRequest, setEditingRequest] = useState<Request | null>(null);
   const [newType, setNewType] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     // Verifica se está logado
@@ -57,8 +59,11 @@ export default function RequerimentosPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/requests", {
-        method: "POST",
+      const url = editingRequest ? `/api/requests/${editingRequest.id}` : "/api/requests";
+      const method = editingRequest ? "PUT" : "POST";
+      
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serverId,
@@ -69,18 +74,45 @@ export default function RequerimentosPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Erro ao criar requerimento");
+        alert(data.error || (editingRequest ? "Erro ao editar requerimento" : "Erro ao criar requerimento"));
         return;
       }
 
       setShowModal(false);
+      setEditingRequest(null);
       setNewType("");
       setNewDescription("");
-      loadRequests(serverId);
+      if (serverId) loadRequests(serverId);
     } catch (error) {
       alert("Erro de conexão. Tente novamente.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (request: Request) => {
+    setEditingRequest(request);
+    setNewType(request.type);
+    setNewDescription(request.description || "");
+    setShowModal(true);
+  };
+
+  const handleDelete = async (requestId: string) => {
+    try {
+      const res = await fetch(`/api/requests/${requestId}?serverId=${serverId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Erro ao excluir requerimento");
+        return;
+      }
+
+      setShowDeleteConfirm(null);
+      if (serverId) loadRequests(serverId);
+    } catch (error) {
+      alert("Erro de conexão. Tente novamente.");
     }
   };
 
@@ -386,6 +418,25 @@ export default function RequerimentosPage() {
                   </button>
                 )}
 
+                {request.status === "pendente" && (
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => handleEdit(request)}
+                      className="flex-1 flex items-center justify-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                    >
+                      <Edit className="h-5 w-5 text-amber-600" />
+                      <span className="text-sm font-medium text-amber-900">Editar</span>
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(request.id)}
+                      className="flex-1 flex items-center justify-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                    >
+                      <Trash2 className="h-5 w-5 text-red-600" />
+                      <span className="text-sm font-medium text-red-900">Excluir</span>
+                    </button>
+                  </div>
+                )}
+
                 <button
                   onClick={() => handleGenerateOfficialDocument(request.id)}
                   className="mt-3 w-full flex items-center justify-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
@@ -399,11 +450,13 @@ export default function RequerimentosPage() {
         )}
       </div>
 
-      {/* Modal Novo Requerimento */}
+      {/* Modal Novo/Editar Requerimento */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Novo Requerimento</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-4">
+              {editingRequest ? "Editar Requerimento" : "Novo Requerimento"}
+            </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -443,6 +496,7 @@ export default function RequerimentosPage() {
                   type="button"
                   onClick={() => {
                     setShowModal(false);
+                    setEditingRequest(null);
                     setNewType("");
                     setNewDescription("");
                   }}
@@ -455,10 +509,44 @@ export default function RequerimentosPage() {
                   disabled={submitting || !newType}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {submitting ? "Enviando..." : "Enviar"}
+                  {submitting ? "Salvando..." : editingRequest ? "Salvar Alterações" : "Enviar"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmação de Exclusão */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-slate-900">Excluir Requerimento</h3>
+                <p className="text-sm text-slate-600">Esta ação não pode ser desfeita</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-700 mb-6">
+              Tem certeza que deseja excluir este requerimento? Ele será removido permanentemente do sistema.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg font-medium hover:bg-slate-300 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(showDeleteConfirm)}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 transition-colors"
+              >
+                Sim, Excluir
+              </button>
+            </div>
           </div>
         </div>
       )}
