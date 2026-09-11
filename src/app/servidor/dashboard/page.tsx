@@ -11,8 +11,10 @@ import {
   CheckCircle,
   LogOut,
   Download,
+  Eye,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { AdvantageDetailsModal } from "@/components/AdvantageDetailsModal";
 
 interface ServerInfo {
   id: string;
@@ -51,6 +53,10 @@ export default function DashboardServidorPage() {
   const [server, setServer] = useState<ServerInfo | null>(null);
   const [report, setReport] = useState<FullReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDetails, setShowDetails] = useState<{
+    type: "ats" | "license" | "evolution";
+    data: any;
+  } | null>(null);
 
   useEffect(() => {
     // Verifica se está logado
@@ -142,9 +148,18 @@ export default function DashboardServidorPage() {
                   <Award className="h-6 w-6 text-blue-600" />
                   <h2 className="text-lg font-bold text-slate-900">Adicional por Tempo de Serviço</h2>
                 </div>
-                <span className="text-sm text-slate-500">
-                  {report.ats.totalGranted} quinquênio(s)
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-500">
+                    {report.ats.totalGranted} quinquênio(s)
+                  </span>
+                  <button
+                    onClick={() => setShowDetails({ type: "ats", data: report.ats })}
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Ver detalhes"
+                  >
+                    <Eye className="h-5 w-5 text-slate-600" />
+                  </button>
+                </div>
               </div>
               
               {report.ats.granted.length > 0 ? (
@@ -182,9 +197,18 @@ export default function DashboardServidorPage() {
                   <Calendar className="h-6 w-6 text-green-600" />
                   <h2 className="text-lg font-bold text-slate-900">Licença Prêmio</h2>
                 </div>
-                <span className="text-sm text-slate-500">
-                  {report.license.totalCerts} certidão(ões)
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-500">
+                    {report.license.totalCerts} certidão(ões)
+                  </span>
+                  <button
+                    onClick={() => setShowDetails({ type: "license", data: report.license })}
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Ver detalhes"
+                  >
+                    <Eye className="h-5 w-5 text-slate-600" />
+                  </button>
+                </div>
               </div>
               
               {report.license.totalCerts > 0 ? (
@@ -224,9 +248,18 @@ export default function DashboardServidorPage() {
                     <TrendingUp className="h-6 w-6 text-purple-600" />
                     <h2 className="text-lg font-bold text-slate-900">Evolução Funcional</h2>
                   </div>
-                  <span className="text-sm text-slate-500">
-                    {report.evolution.totalGranted} evolução(ões)
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-500">
+                      {report.evolution.totalGranted} evolução(ões)
+                    </span>
+                    <button
+                      onClick={() => setShowDetails({ type: "evolution", data: report.evolution })}
+                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                      title="Ver detalhes"
+                    >
+                      <Eye className="h-5 w-5 text-slate-600" />
+                    </button>
+                  </div>
                 </div>
               
               {report.evolution.granted.length > 0 ? (
@@ -286,6 +319,15 @@ export default function DashboardServidorPage() {
             <AlertTriangle className="h-12 w-12 text-amber-600 mx-auto mb-3" />
             <p className="text-slate-900 font-medium">Não foi possível carregar seus dados</p>
           </div>
+        )}
+
+        {/* Modal de Detalhes */}
+        {showDetails && (
+          <AdvantageDetailsModal
+            type={showDetails.type}
+            data={showDetails.data}
+            onClose={() => setShowDetails(null)}
+          />
         )}
       </div>
     </div>
