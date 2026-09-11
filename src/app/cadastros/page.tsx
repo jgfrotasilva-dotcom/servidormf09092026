@@ -21,6 +21,7 @@ import { formatCPF, formatPhone, formatDate, calculateAge } from "@/lib/format";
 import { ServerFormModal } from "@/components/ServerFormModal";
 import { ImportModal } from "@/components/ImportModal";
 import { ServerDetails } from "@/components/ServerDetails";
+import { AdminHeader } from "@/components/AdminHeader";
 
 export default function CadastrosPage() {
   const [servers, setServers] = useState<Server[]>([]);

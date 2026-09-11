@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Printer, Cake, Calendar, Gift } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Printer, Cake, Calendar, Gift, ArrowLeft, LogOut } from "lucide-react";
 import type { Server } from "@/db/schema";
 import { isBirthdayInMonth, formatBirthday, calculateAge, formatDate } from "@/lib/format";
 
@@ -12,6 +12,7 @@ const MONTH_NAMES = [
 ];
 
 export default function AniversariantesContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const monthParam = searchParams.get("month");
 
@@ -66,13 +67,25 @@ export default function AniversariantesContent() {
     year: "numeric",
   });
 
+  // Verifica se é admin para mostrar botão de voltar
+  const isAdmin = typeof window !== "undefined" && localStorage.getItem("admin");
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 print:bg-white print:border-b-2 print:border-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {isAdmin && (
+                <button
+                  onClick={() => router.push("/admin/dashboard")}
+                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors print:hidden"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Voltar ao Painel</span>
+                </button>
+              )}
               <div className="p-2 bg-pink-100 rounded-lg print:bg-transparent print:p-0">
                 <Cake className="h-6 w-6 text-pink-600 print:text-black" />
               </div>
@@ -83,13 +96,27 @@ export default function AniversariantesContent() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handlePrint}
-              className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium flex items-center gap-2 print:hidden"
-            >
-              <Printer className="h-4 w-4" />
-              Imprimir
-            </button>
+            <div className="flex items-center gap-2 print:hidden">
+              <button
+                onClick={handlePrint}
+                className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium flex items-center gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                Imprimir
+              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("admin");
+                    router.push("/");
+                  }}
+                  className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sair</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Seletor de Mês */}

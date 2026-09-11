@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, CheckCircle, XCircle, Clock, MessageSquare, ArrowLeft, Upload, Download } from "lucide-react";
+import { FileText, CheckCircle, XCircle, Clock, MessageSquare, ArrowLeft, Upload, Download, LogOut } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { AdminHeader } from "@/components/AdminHeader";
 
 interface Request {
   id: string;
@@ -181,24 +182,10 @@ export default function AdminRequerimentosPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/admin/dashboard")}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold">Gerenciar Requerimentos</h1>
-              <p className="text-indigo-100 mt-1">Aprove ou rejeite requerimentos dos servidores</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AdminHeader
+        title="Gerenciar Requerimentos"
+        subtitle="Aprove ou rejeite requerimentos dos servidores"
+      />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
