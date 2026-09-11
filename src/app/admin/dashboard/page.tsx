@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
   Users,
   Gift,
   FileBarChart,
@@ -13,11 +12,8 @@ import {
   Cake,
   LogOut,
   FileText,
-  TrendingUp,
-  Calendar,
-  Award,
-  BarChart3,
 } from "lucide-react";
+import Link from "next/link";
 
 const MENU_ITEMS = [
   {
@@ -92,30 +88,74 @@ const MENU_ITEMS = [
   },
 ];
 
+interface DashboardStats {
+  totalServidores: number;
+  totalAusencias: number;
+  totalRequerimentos: number;
+  aniversariantesMes: number;
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalServidores: 0,
     totalAusencias: 0,
     totalRequerimentos: 0,
-    totalVantagens: 0,
+    aniversariantesMes: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Verifica se está logado como admin
     const isAdmin = localStorage.getItem("admin");
     if (!isAdmin) {
       router.push("/admin/login");
+      return;
     }
+
+    loadStats();
   }, []);
+
+  const loadStats = async () => {
+    setLoading(true);
+    try {
+      // Carrega servidores
+      const serversRes = await fetch("/api/servers?limit=1");
+      const serversData = await serversRes.json();
+      
+      // Carrega ausências
+      const absencesRes = await fetch("/api/absences?limit=1");
+      const absencesData = await absencesRes.json();
+
+      // Carrega requerimentos
+      const requestsRes = await fetch("/api/requests/all");
+      const requestsData = await requestsRes.json();
+
+      // Calcula aniversariantes do mês
+      const currentMonth = new Date().getMonth() + 1;
+      const allServers = serversData.servers || [];
+      const aniversariantes = allServers.filter((s: any) => {
+        if (!s.birthDate) return false;
+        const birthDate = new Date(s.birthDate);
+        return birthDate.getMonth() + 1 === currentMonth;
+      });
+
+      setStats({
+        totalServidores: serversData.count || 0,
+        totalAusencias: absencesData.count || 0,
+        totalRequerimentos: requestsData.count || 0,
+        aniversariantesMes: aniversariantes.length,
+      });
+    } catch (error) {
+      console.error("Erro ao carregar estatísticas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("admin");
     router.push("/");
-  };
-
-  const handleMenuClick = (href: string) => {
-    router.push(href);
   };
 
   return (
@@ -165,7 +205,9 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Servidores</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.totalServidores}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {loading ? "..." : stats.totalServidores}
+                </p>
               </div>
             </div>
           </div>
@@ -176,7 +218,9 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Ausências</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.totalAusencias}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {loading ? "..." : stats.totalAusencias}
+                </p>
               </div>
             </div>
           </div>
@@ -187,18 +231,22 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Requerimentos</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.totalRequerimentos}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {loading ? "..." : stats.totalRequerimentos}
+                </p>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-xl shadow p-6 border border-slate-200">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Gift className="h-6 w-6 text-purple-600" />
+              <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                <Cake className="h-6 w-6 text-pink-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-600">Vantagens</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.totalVantagens}</p>
+                <p className="text-sm text-slate-600">Aniversariantes</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {loading ? "..." : stats.aniversariantesMes}
+                </p>
               </div>
             </div>
           </div>
@@ -209,9 +257,9 @@ export default function AdminDashboardPage() {
           {MENU_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
-              <button
+              <Link
                 key={item.id}
-                onClick={() => handleMenuClick(item.href)}
+                href={item.href}
                 className={`${item.bgColor} ${item.borderColor} border-2 rounded-2xl p-6 text-left hover:shadow-lg transition-all duration-300 hover:scale-105 group`}
               >
                 <div className="flex items-start justify-between mb-4">
@@ -227,7 +275,7 @@ export default function AdminDashboardPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-              </button>
+              </Link>
             );
           })}
         </div>

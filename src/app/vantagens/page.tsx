@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   TrendingUp,
 } from "lucide-react";
+import { AdminHeader } from "@/components/AdminHeader";
 
 interface OverviewData {
   eligibleServers: number;
@@ -95,7 +96,12 @@ export default function VantagensPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <>
+      <AdminHeader
+        title="Vantagens Pessoais"
+        subtitle="Visão geral das vantagens dos servidores"
+      />
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
@@ -284,5 +290,6 @@ export default function VantagensPage() {
         </>
       ) : null}
     </div>
+    </>
   );
 }

@@ -14,6 +14,7 @@ import {
 import type { Server, Absence } from "@/db/schema";
 import { ABSENCE_ALL } from "@/db/schema";
 import { formatDate } from "@/lib/format";
+import { AdminHeader } from "@/components/AdminHeader";
 
 type AbsenceFormData = {
   type: "AUSENCIA" | "ORIENTACAO_TECNICA";
@@ -252,32 +253,10 @@ export default function AusenciasContent() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
-                <ClipboardList className="h-3.5 w-3.5" />
-                Gestão de Frequência
-              </div>
-              <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
-                Ausências e Orientações Técnicas
-              </h1>
-              <p className="mt-1 text-sm text-slate-600">
-                Registro de faltas, licenças e formações dos servidores
-              </p>
-            </div>
-            <a
-              href="/ausencias/relatorio"
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-600 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-orange-200 transition hover:from-orange-700 hover:to-red-700"
-            >
-              <FileText className="h-4 w-4" />
-              Relatório Mensal
-            </a>
-          </div>
-        </div>
-      </div>
+      <AdminHeader
+        title="Ausências e Orientações Técnicas"
+        subtitle="Registro de faltas, licenças e formações dos servidores"
+      />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Seletor de Servidor */}

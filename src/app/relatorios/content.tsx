@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { Printer, Download } from "lucide-react";
 import type { Server } from "@/db/schema";
-import { CATEGORIES, DESIGNATED_FUNCTIONS, POSITIONS } from "@/db/schema";
+import { CATEGORIES, DESIGNATED_FUNCTIONS } from "@/db/schema";
 import { formatDate, formatCPF, formatPhone } from "@/lib/format";
+import { AdminHeader } from "@/components/AdminHeader";
 
 type ReportType = "geral" | "cargo" | "categoria";
 
@@ -98,39 +99,24 @@ export default function RelatoriosContent() {
       filtered = filtered.filter((s) => s.active === isActive);
     }
 
-    switch (reportType) {
-      case "cargo":
-        filtered.sort((a, b) => {
-          const posCompare = a.position.localeCompare(b.position);
-          if (posCompare !== 0) return posCompare;
-          return a.name.localeCompare(b.name);
-        });
-        break;
-      case "categoria":
-        filtered.sort((a, b) => {
-          const catCompare = a.category.localeCompare(b.category);
-          if (catCompare !== 0) return catCompare;
-          return a.name.localeCompare(b.name);
-        });
-        break;
-      default:
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
+    if (reportType === "cargo") {
+      filtered.sort((a, b) => a.position.localeCompare(b.position) || a.name.localeCompare(b.name));
+    } else if (reportType === "categoria") {
+      filtered.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+    } else {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return filtered;
   };
 
-  const filteredServers = getFilteredServers();
-
   const getReportTitle = (): string => {
-    switch (reportType) {
-      case "cargo":
-        return "RELAÇÃO DE SERVIDORES POR CARGO";
-      case "categoria":
-        return "RELAÇÃO DE SERVIDORES POR CATEGORIA FUNCIONAL";
-      default:
-        return "RELAÇÃO NOMINAL DE SERVIDORES";
-    }
+    const titles: Record<ReportType, string> = {
+      geral: "Relatório Geral de Servidores",
+      cargo: "Relatório de Servidores por Cargo",
+      categoria: "Relatório de Servidores por Categoria",
+    };
+    return titles[reportType];
   };
 
   const today = new Date().toLocaleDateString("pt-BR", {
@@ -139,19 +125,19 @@ export default function RelatoriosContent() {
     year: "numeric",
   });
 
+  const filteredServers = getFilteredServers();
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Controles (não imprimíveis) */}
-      <div className="bg-white border-b border-slate-200 print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Relatórios</h1>
-              <p className="text-sm text-slate-600">
-                Geração de relatórios de servidores
-              </p>
-            </div>
-            <div className="flex gap-2">
+    <>
+      <AdminHeader
+        title="Relatórios"
+        subtitle="Geração de relatórios de servidores"
+      />
+      <div className="min-h-screen bg-slate-50">
+        {/* Controles (não imprimíveis) */}
+        <div className="bg-white border-b border-slate-200 print:hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex gap-2 justify-end mb-4">
               <button
                 onClick={handleExportCSV}
                 disabled={filteredServers.length === 0}
@@ -169,116 +155,108 @@ export default function RelatoriosContent() {
                 Imprimir
               </button>
             </div>
-          </div>
 
-          {/* Tipo de Relatório */}
-          <div className="bg-slate-50 rounded-lg p-4 mb-4">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Tipo de Relatório
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <button
-                onClick={() => setReportType("geral")}
-                className={`p-3 rounded border-2 text-sm font-medium transition ${
-                  reportType === "geral"
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-900"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                Relatório Geral
-              </button>
-              <button
-                onClick={() => setReportType("cargo")}
-                className={`p-3 rounded border-2 text-sm font-medium transition ${
-                  reportType === "cargo"
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-900"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                Por Cargo
-              </button>
-              <button
-                onClick={() => setReportType("categoria")}
-                className={`p-3 rounded border-2 text-sm font-medium transition ${
-                  reportType === "categoria"
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-900"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                Por Categoria
-              </button>
+            {/* Tipo de Relatório */}
+            <div className="bg-slate-50 rounded-lg p-4 mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Relatório:</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setReportType("geral")}
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    reportType === "geral" ? "bg-indigo-600 text-white" : "bg-white text-slate-700 border border-slate-300"
+                  }`}
+                >
+                  Geral
+                </button>
+                <button
+                  onClick={() => setReportType("cargo")}
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    reportType === "cargo" ? "bg-indigo-600 text-white" : "bg-white text-slate-700 border border-slate-300"
+                  }`}
+                >
+                  Por Cargo
+                </button>
+                <button
+                  onClick={() => setReportType("categoria")}
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    reportType === "categoria" ? "bg-indigo-600 text-white" : "bg-white text-slate-700 border border-slate-300"
+                  }`}
+                >
+                  Por Categoria
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Filtros */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Cargo</label>
-              <select
-                value={filterPosition}
-                onChange={(e) => setFilterPosition(e.target.value)}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
-              >
-                <option value="all">Todos os cargos</option>
-                {POSITIONS.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Categoria</label>
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
-              >
-                <option value="all">Todas as categorias</option>
-                {CATEGORIES.map((c) => (
-                  <option key={c.code} value={c.code}>{c.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Situação</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
-              >
-                <option value="ativo">Apenas Ativos</option>
-                <option value="all">Todos</option>
-                <option value="inativo">Apenas Inativos</option>
-              </select>
+            {/* Filtros */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Cargo:</label>
+                <select
+                  value={filterPosition}
+                  onChange={(e) => setFilterPosition(e.target.value)}
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                >
+                  <option value="all">Todos</option>
+                  {Array.from(new Set(servers.map((s) => s.position))).map((pos) => (
+                    <option key={pos} value={pos}>{pos}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Categoria:</label>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                >
+                  <option value="all">Todas</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.code} value={cat.code}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Situação:</label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                >
+                  <option value="ativo">Apenas Ativos</option>
+                  <option value="all">Todos</option>
+                  <option value="inativo">Apenas Inativos</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Relatório */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-          <div className="flex items-center justify-center py-12 bg-white rounded-lg">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
-        ) : filteredServers.length === 0 ? (
-          <div className="bg-white rounded-lg p-12 text-center">
-            <h3 className="text-lg font-medium text-slate-900 mt-4">Nenhum servidor encontrado</h3>
-            <p className="text-slate-600 mt-2">
-              Ajuste os filtros ou cadastre servidores para gerar relatórios.
-            </p>
-          </div>
-        ) : (
-          <ReportDocument
-            servers={filteredServers}
-            reportType={reportType}
-            reportTitle={getReportTitle()}
-            today={today}
-            getCategoryLabel={getCategoryLabel}
-            getDesignatedFunctionLabel={getDesignatedFunctionLabel}
-          />
-        )}
+        {/* Relatório */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {loading ? (
+            <div className="flex items-center justify-center py-12 bg-white rounded-lg">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+          ) : filteredServers.length === 0 ? (
+            <div className="bg-white rounded-lg p-12 text-center">
+              <h3 className="text-lg font-medium text-slate-900 mt-4">Nenhum servidor encontrado</h3>
+              <p className="text-slate-600 mt-2">
+                Ajuste os filtros ou cadastre servidores para gerar relatórios.
+              </p>
+            </div>
+          ) : (
+            <ReportDocument
+              servers={filteredServers}
+              reportType={reportType}
+              reportTitle={getReportTitle()}
+              today={today}
+              getCategoryLabel={getCategoryLabel}
+              getDesignatedFunctionLabel={getDesignatedFunctionLabel}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -297,7 +275,6 @@ function ReportDocument({
   getCategoryLabel: (code: string) => string;
   getDesignatedFunctionLabel: (code: string | null) => string;
 }) {
-  // Agrupar servidores conforme tipo de relatório
   const groupedData: Record<string, Server[]> = {};
 
   if (reportType === "cargo") {
@@ -311,7 +288,7 @@ function ReportDocument({
       groupedData[s.category].push(s);
     });
   } else {
-    groupedData["geral"] = servers;
+    groupedData["Servidores"] = servers;
   }
 
   return (
@@ -329,123 +306,59 @@ function ReportDocument({
       </div>
 
       {/* Título do Relatório */}
-      <div className="report-title p-6 text-center border-b border-slate-300">
-        <h1 className="text-base font-bold uppercase tracking-wide max-w-2xl mx-auto">
-          {reportTitle}
-        </h1>
-        <p className="text-xs text-slate-600 mt-1">
-          Emitido em {today}
-        </p>
+      <div className="report-title p-6 border-b border-slate-300 bg-slate-50">
+        <h2 className="text-xl font-bold text-center text-slate-900">{reportTitle}</h2>
+        <p className="text-sm text-center text-slate-600 mt-2">Emitido em {today}</p>
+        <p className="text-sm text-center text-slate-600">Total: {servers.length} servidor(es)</p>
       </div>
 
       {/* Conteúdo */}
-      <div className="report-content p-6">
-        {reportType === "geral" ? (
-          <table className="report-table w-full text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-100">
-                <th className="border border-black px-2 py-1.5 text-left font-bold">Nº</th>
-                <th className="border border-black px-2 py-1.5 text-left font-bold">Nome Completo</th>
-                <th className="border border-black px-2 py-1.5 text-left font-bold">CPF</th>
-                <th className="border border-black px-2 py-1.5 text-left font-bold">RG</th>
-                <th className="border border-black px-2 py-1.5 text-left font-bold">Cargo</th>
-                <th className="border border-black px-2 py-1.5 text-left font-bold">Categoria</th>
-                <th className="border border-black px-2 py-1.5 text-left font-bold">Função Designada</th>
-                <th className="border border-black px-2 py-1.5 text-left font-bold">Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {servers.map((server, idx) => (
-                <tr key={server.id} className="hover:bg-slate-50">
-                  <td className="border border-black px-2 py-1.5 text-center">{idx + 1}</td>
-                  <td className="border border-black px-2 py-1.5">{server.name}</td>
-                  <td className="border border-black px-2 py-1.5 font-mono">
-                    {formatCPF(server.cpf)}
-                  </td>
-                  <td className="border border-black px-2 py-1.5 font-mono text-xs">
-                    {server.rgCin || "-"}
-                  </td>
-                  <td className="border border-black px-2 py-1.5">{server.position}</td>
-                  <td className="border border-black px-2 py-1.5">
-                    {getCategoryLabel(server.category)}
-                  </td>
-                  <td className="border border-black px-2 py-1.5">
-                    {server.designatedFunction
-                      ? getDesignatedFunctionLabel(server.designatedFunction)
-                      : "-"}
-                  </td>
-                  <td className="border border-black px-2 py-1.5 text-center">
-                    {server.active ? "Ativo" : "Inativo"}
-                  </td>
+      <div className="p-6">
+        {Object.entries(groupedData).map(([group, groupServers]) => (
+          <div key={group} className="mb-8">
+            {reportType !== "geral" && (
+              <h3 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b-2 border-slate-300">
+                {reportType === "cargo" ? group : getCategoryLabel(group)} ({groupServers.length})
+              </h3>
+            )}
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-slate-100">
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Nº</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Nome</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">CPF</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Cargo</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Categoria</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Função</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Faixa</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Nível</th>
+                  <th className="border border-slate-300 px-3 py-2 text-left text-xs font-bold text-slate-700">Situação</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedData)
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([group, groupServers]) => (
-                <div key={group}>
-                  <h2 className="text-sm font-bold uppercase mb-2 border-b border-slate-400 pb-1">
-                    {reportType === "cargo" ? group : getCategoryLabel(group)}
-                  </h2>
-                  <table className="report-table w-full text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-100">
-                        <th className="border border-black px-2 py-1.5 text-left font-bold">Nº</th>
-                        <th className="border border-black px-2 py-1.5 text-left font-bold">Nome Completo</th>
-                        <th className="border border-black px-2 py-1.5 text-left font-bold">CPF</th>
-                        <th className="border border-black px-2 py-1.5 text-left font-bold">RG</th>
-                        <th className="border border-black px-2 py-1.5 text-left font-bold">
-                          {reportType === "categoria" ? "Cargo" : "Categoria"}
-                        </th>
-                        <th className="border border-black px-2 py-1.5 text-left font-bold">
-                          Função Designada
-                        </th>
-                        <th className="border border-black px-2 py-1.5 text-left font-bold">Situação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {groupServers.map((server, idx) => (
-                        <tr key={server.id} className="hover:bg-slate-50">
-                          <td className="border border-black px-2 py-1.5 text-center">{idx + 1}</td>
-                          <td className="border border-black px-2 py-1.5">{server.name}</td>
-                          <td className="border border-black px-2 py-1.5 font-mono">
-                            {formatCPF(server.cpf)}
-                          </td>
-                          <td className="border border-black px-2 py-1.5 font-mono text-xs">
-                            {server.rgCin || "-"}
-                          </td>
-                          <td className="border border-black px-2 py-1.5">
-                            {reportType === "categoria" ? server.position : getCategoryLabel(server.category)}
-                          </td>
-                          <td className="border border-black px-2 py-1.5">
-                            {server.designatedFunction
-                              ? getDesignatedFunctionLabel(server.designatedFunction)
-                              : "-"}
-                          </td>
-                          <td className="border border-black px-2 py-1.5 text-center">
-                            {server.active ? "Ativo" : "Inativo"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+              </thead>
+              <tbody>
+                {groupServers.map((server, idx) => (
+                  <tr key={server.id} className="hover:bg-slate-50">
+                    <td className="border border-slate-300 px-3 py-2 text-sm">{idx + 1}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm font-medium">{server.name}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm font-mono">{formatCPF(server.cpf)}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm">{server.position}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm">{getCategoryLabel(server.category)}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm">{getDesignatedFunctionLabel(server.designatedFunction)}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm">{server.faixa || "-"}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm">{server.nivel || "-"}</td>
+                    <td className="border border-slate-300 px-3 py-2 text-sm">{server.active ? "Ativo" : "Inativo"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Rodapé */}
-      <div className="report-footer p-6 border-t border-slate-300 mt-4">
-        <div className="text-center text-xs text-slate-600 space-y-1">
-          <p>
-            Documento gerado eletronicamente pelo Sistema de Gestão de Servidores
-          </p>
-          <p>EE Profa. Marlene Frattini • {today}</p>
-        </div>
+      <div className="report-footer p-6 border-t border-slate-300 bg-slate-50 text-center">
+        <p className="text-xs text-slate-600">Documento gerado eletronicamente pelo Sistema de Gestão de Servidores</p>
+        <p className="text-xs text-slate-600 mt-1">EE Profa. Marlene Frattini • {today}</p>
       </div>
     </div>
   );
