@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -11,12 +11,95 @@ import {
   GraduationCap,
   ClipboardList,
   Cake,
+  LogOut,
   FileText,
+  TrendingUp,
+  Calendar,
+  Award,
+  BarChart3,
 } from "lucide-react";
-import Link from "next/link";
+
+const MENU_ITEMS = [
+  {
+    id: "cadastros",
+    title: "Cadastros",
+    description: "Gerenciar servidores da escola",
+    icon: Users,
+    href: "/cadastros",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+  },
+  {
+    id: "aniversariantes",
+    title: "Aniversariantes",
+    description: "Aniversariantes do mês",
+    icon: Cake,
+    href: "/aniversariantes",
+    color: "from-pink-500 to-pink-600",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+  },
+  {
+    id: "ausencias",
+    title: "Ausências",
+    description: "Faltas e orientações técnicas",
+    icon: ClipboardList,
+    href: "/ausencias",
+    color: "from-orange-500 to-orange-600",
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-200",
+  },
+  {
+    id: "vantagens",
+    title: "Vantagens Pessoais",
+    description: "ATS, Licença Prêmio, Evolução",
+    icon: Gift,
+    href: "/vantagens",
+    color: "from-purple-500 to-purple-600",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-200",
+  },
+  {
+    id: "requerimentos",
+    title: "Requerimentos",
+    description: "Aprovar ou rejeitar solicitações",
+    icon: FileText,
+    href: "/admin/requerimentos",
+    color: "from-green-500 to-green-600",
+    bgColor: "bg-green-50",
+    borderColor: "border-green-200",
+  },
+  {
+    id: "relatorios",
+    title: "Relatórios",
+    description: "Relatórios do sistema",
+    icon: FileBarChart,
+    href: "/relatorios",
+    color: "from-indigo-500 to-indigo-600",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+  },
+  {
+    id: "configuracoes",
+    title: "Configurações",
+    description: "Backup e restauração",
+    icon: Settings,
+    href: "/configuracoes",
+    color: "from-slate-500 to-slate-600",
+    bgColor: "bg-slate-50",
+    borderColor: "border-slate-200",
+  },
+];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const [stats, setStats] = useState({
+    totalServidores: 0,
+    totalAusencias: 0,
+    totalRequerimentos: 0,
+    totalVantagens: 0,
+  });
 
   useEffect(() => {
     // Verifica se está logado como admin
@@ -26,119 +109,133 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
-  const menuItems = [
-    {
-      title: "Painel Principal",
-      description: "Visão geral do sistema",
-      icon: LayoutDashboard,
-      href: "/",
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      title: "Cadastros",
-      description: "Gerenciar servidores",
-      icon: Users,
-      href: "/cadastros",
-      color: "from-green-500 to-green-600",
-    },
-    {
-      title: "Aniversariantes",
-      description: "Aniversariantes do mês",
-      icon: Cake,
-      href: "/aniversariantes",
-      color: "from-pink-500 to-pink-600",
-    },
-    {
-      title: "Ausências",
-      description: "Faltas e orientações",
-      icon: ClipboardList,
-      href: "/ausencias",
-      color: "from-orange-500 to-orange-600",
-    },
-    {
-      title: "Vantagens Pessoais",
-      description: "ATS, Licença Prêmio, Evolução",
-      icon: Gift,
-      href: "/vantagens",
-      color: "from-purple-500 to-purple-600",
-    },
-    {
-      title: "Requerimentos",
-      description: "Aprovar ou rejeitar solicitações",
-      icon: FileText,
-      href: "/admin/requerimentos",
-      color: "from-amber-500 to-amber-600",
-    },
-    {
-      title: "Relatórios",
-      description: "Relatórios do sistema",
-      icon: FileBarChart,
-      href: "/relatorios",
-      color: "from-indigo-500 to-indigo-600",
-    },
-    {
-      title: "Configurações",
-      description: "Configurações do sistema",
-      icon: Settings,
-      href: "/configuracoes",
-      color: "from-slate-500 to-slate-600",
-    },
-  ];
+  const handleLogout = () => {
+    localStorage.removeItem("admin");
+    router.push("/");
+  };
+
+  const handleMenuClick = (href: string) => {
+    router.push(href);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+                <GraduationCap className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">Portal da Gestão</h1>
+                <p className="text-sm text-slate-500">EE Profa. Marlene Frattini</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair do Sistema</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-slate-900 mb-2">
-            Acesso Universal do Sistema
+            Bem-vindo ao Sistema de Gestão
           </h2>
           <p className="text-slate-600">
-            Gerencie cadastros, vantagens, ausências e relatórios de todos os servidores
+            Selecione uma opção abaixo para gerenciar o sistema
           </p>
         </div>
 
-        {/* Menu Cards */}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-xl shadow p-6 border border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">Servidores</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.totalServidores}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow p-6 border border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <ClipboardList className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">Ausências</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.totalAusencias}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow p-6 border border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <FileText className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">Requerimentos</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.totalRequerimentos}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow p-6 border border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Gift className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">Vantagens</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.totalVantagens}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Menu Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuItems.map((item) => {
+          {MENU_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden"
+              <button
+                key={item.id}
+                onClick={() => handleMenuClick(item.href)}
+                className={`${item.bgColor} ${item.borderColor} border-2 rounded-2xl p-6 text-left hover:shadow-lg transition-all duration-300 hover:scale-105 group`}
               >
-                <div className={`h-2 bg-gradient-to-r ${item.color}`}></div>
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
-                      <Icon className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-slate-900 mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-sm text-slate-600">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-indigo-600 font-semibold text-sm flex items-center gap-2 group-hover:gap-3 transition-all">
-                    Acessar
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`w-16 h-16 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                    <Icon className="h-8 w-8 text-white" />
                   </div>
                 </div>
-              </Link>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">{item.title}</h3>
+                <p className="text-sm text-slate-600 mb-4">{item.description}</p>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 group-hover:text-slate-900">
+                  <span>Acessar</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
             );
           })}
         </div>
 
-        {/* Info Box */}
-        <div className="mt-8 bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-indigo-200">
+        {/* Info Footer */}
+        <div className="mt-8 bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-slate-200">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
               <GraduationCap className="h-5 w-5 text-indigo-600" />
             </div>
             <div>
@@ -150,7 +247,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

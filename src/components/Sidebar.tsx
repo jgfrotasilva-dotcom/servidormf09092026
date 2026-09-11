@@ -27,12 +27,17 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
 
-  // Não mostrar Sidebar na página inicial, área do servidor, login da gestão ou dashboard da gestão
+  // Verifica se é admin (está na área administrativa)
+  const isAdmin = typeof window !== "undefined" && localStorage.getItem("admin");
+
+  // Não mostrar Sidebar na página inicial, área do servidor, login da gestão, ou qualquer página admin
   if (
     pathname === "/" ||
     pathname.startsWith("/servidor") ||
     pathname === "/admin/login" ||
-    pathname === "/admin/dashboard"
+    pathname === "/admin/dashboard" ||
+    pathname.startsWith("/admin") ||
+    isAdmin
   ) {
     return null;
   }

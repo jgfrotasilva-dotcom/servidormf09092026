@@ -107,39 +107,41 @@ export async function GET() {
         .where(eq(licenseCertificates.serverId, server.id))
         .orderBy(desc(licenseCertificates.acquisitionEndDate));
 
-      if (atsList.length > 0) {
-        const firstAts = atsList[atsList.length - 1];
-        const firstDate = new Date(firstAts.startDate);
+      // Usa apenas a ÚLTIMA certidão como base para calcular a próxima
+      if (certificates.length > 0) {
+        const lastCert = certificates[0]; // Mais recente (ordenado por acquisitionEndDate DESC)
+        const lastEndDate = new Date(lastCert.acquisitionEndDate);
         
-        const yearsSinceFirst = Math.floor((today.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24 * 365));
-        const expectedCertificates = Math.floor(yearsSinceFirst / 5);
+        // Próximo período começa no dia após o fim do último
+        const nextPeriodStart = new Date(lastEndDate);
+        nextPeriodStart.setDate(nextPeriodStart.getDate() + 1);
         
-        if (expectedCertificates > certificates.length) {
-          const lastCertEndDate = certificates.length > 0 
-            ? new Date(certificates[0].acquisitionEndDate)
-            : firstDate;
-          
-          const nextPeriodStart = new Date(lastCertEndDate);
-          nextPeriodStart.setDate(nextPeriodStart.getDate() + 1);
-          
-          const nextPeriodEnd = new Date(nextPeriodStart);
-          // O período inclui o dia inicial, então somamos 1824 dias
-          nextPeriodEnd.setDate(nextPeriodEnd.getDate() + 1824);
-          
-          const diffDays = Math.floor((today.getTime() - nextPeriodEnd.getTime()) / (1000 * 60 * 60 * 24));
-          
+        // Próximo período tem duração de 5 anos (1825 dias)
+        const nextPeriodEnd = new Date(nextPeriodStart);
+        // O período inclui o dia inicial, então somamos 1824 dias
+        nextPeriodEnd.setDate(nextPeriodEnd.getDate() + 1824);
+        
+        const diffDays = Math.floor((today.getTime() - nextPeriodEnd.getTime()) / (1000 * 60 * 60 * 24));
+        
           if (diffDays > 0 && today > nextPeriodEnd) {
+            // Período aquisitivo vencido
             serverIssues.overdue.push({
               type: "LICENÇA PRÊMIO",
-              label: `${expectedCertificates - certificates.length} certidão(ões) pendente(s)`,
+              label: "Período aquisitivo vencido",
               expectedDate: nextPeriodEnd.toISOString().split("T")[0],
               daysPast: diffDays,
-              details: certificates.length > 0 
-                ? `Última certidão: ${certificates[0].certificateNumber}` 
-                : "Nenhuma certidão registrada",
+              details: `Última certidão: ${lastCert.certificateNumber}/${lastCert.certificateYear}`,
+            });
+          } else if (diffDays >= -180 && diffDays <= 0) {
+            // Período aquisitivo a vencer nos próximos 180 dias
+            serverIssues.upcoming.push({
+              type: "LICENÇA PRÊMIO",
+              label: "Período aquisitivo a vencer",
+              expectedDate: nextPeriodEnd.toISOString().split("T")[0],
+              daysRemaining: Math.abs(diffDays),
+              details: `Última certidão: ${lastCert.certificateNumber}/${lastCert.certificateYear}`,
             });
           }
-        }
       }
 
       // Adiciona servidor às listas apropriadas

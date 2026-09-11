@@ -106,20 +106,47 @@ export async function GET() {
       let licenseStatus: string = ANALYSIS.OK;
       let licenseAlert: string | null = null;
 
+      // Usa apenas a ÚLTIMA certidão como base para verificar vencimento
       if (serverCerts.length === 0) {
-        // Verifica se servidor tem ATS (ou seja, já tem 5+ anos) mas não tem certidão
-        if (serverAts.length > 0) {
+        // Sem certidões - não há base para cálculo
+        licenseStatus = ANALYSIS.SEM_DADOS;
+        licenseAlert = "Nenhuma certidão cadastrada";
+      } else {
+        // Tem certidões - usa a última como base
+        // Ordena por acquisitionEndDate DESC para pegar a mais recente
+        const sortedCerts = [...serverCerts].sort((a, b) => 
+          new Date(b.acquisitionEndDate).getTime() - new Date(a.acquisitionEndDate).getTime()
+        );
+        const lastCert = sortedCerts[0];
+        const lastStartDate = new Date(lastCert.acquisitionStartDate);
+        const lastEndDate = new Date(lastCert.acquisitionEndDate);
+        
+        // Calcula quando deveria ter a próxima certidão
+        const nextPeriodStart = new Date(lastEndDate);
+        nextPeriodStart.setDate(nextPeriodStart.getDate() + 1);
+        
+        const nextPeriodEnd = new Date(nextPeriodStart);
+        // Período de 5 anos (1825 dias)
+        nextPeriodEnd.setDate(nextPeriodEnd.getDate() + 1824);
+        
+        const diffDays = Math.ceil((nextPeriodEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+          // Período aquisitivo vencido
+          licenseStatus = ANALYSIS.VENCIDO;
+          licenseAlert = `Período aquisitivo vencido há ${Math.abs(diffDays)} dias (deveria ter nova certidão)`;
+        } else if (diffDays <= 180) {
+          // Período aquisitivo a vencer em até 180 dias
           licenseStatus = ANALYSIS.ATENCAO;
-          licenseAlert = "Servidor possui ATS mas nenhuma certidão de licença registrada";
-        } else {
-          licenseStatus = ANALYSIS.SEM_DADOS;
-          licenseAlert = "Nenhuma certidão cadastrada";
+          licenseAlert = `Período aquisitivo vence em ${diffDays} dias`;
+        } else if (exhaustedCerts === serverCerts.length) {
+          // Todas certidões com saldo esgotado
+          licenseStatus = ANALYSIS.ATENCAO;
+          licenseAlert = "Todas as certidões com saldo esgotado";
+        } else if (totalBalance > 0) {
+          // Tem saldo disponível
+          licenseStatus = ANALYSIS.OK;
         }
-      } else if (exhaustedCerts === serverCerts.length && serverCerts.length > 0) {
-        licenseStatus = ANALYSIS.ATENCAO;
-        licenseAlert = "Todas as certidões com saldo esgotado";
-      } else if (totalBalance > 0) {
-        licenseStatus = ANALYSIS.OK;
       }
 
       const licenseAnalysis = {
