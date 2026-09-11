@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Plus, Clock, CheckCircle, XCircle, ArrowLeft, Download, Edit, Trash2 } from "lucide-react";
+import { FileText, Plus, Clock, CheckCircle, XCircle, ArrowLeft, Download, Edit, Trash2, MessageCircle, X } from "lucide-react";
 import { formatDate } from "@/lib/format";
+
+interface Interaction {
+  id: string;
+  from: "servidor" | "gestao";
+  message: string;
+  createdAt: string;
+}
 
 interface Request {
   id: string;
@@ -13,6 +20,7 @@ interface Request {
   createdAt: string;
   responseNotes: string | null;
   documentName: string | null;
+  interactions?: Interaction[];
 }
 
 export default function RequerimentosPage() {
@@ -26,6 +34,9 @@ export default function RequerimentosPage() {
   const [newDescription, setNewDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState<Request | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     // Verifica se está logado
@@ -197,13 +208,30 @@ export default function RequerimentosPage() {
         return;
       }
 
+      // Busca interações
+      const interactionsRes = await fetch(`/api/requests/${requestId}/interactions`);
+      const interactionsData = await interactionsRes.json();
+      const interactions = interactionsData.interactions || [];
+
+      // Cria HTML das interações
+      const interactionsHtml = interactions.length > 0 
+        ? interactions.map((i: any) => `
+          <div style="margin: 10px 0; padding: 10px; border-left: 3px solid ${i.from === 'servidor' ? '#3b82f6' : '#10b981'}; background: ${i.from === 'servidor' ? '#eff6ff' : '#f0fdf4'}; padding-left: 15px;">
+            <p style="margin: 0; font-size: 11px; color: #666;">
+              <strong>${i.from === 'servidor' ? 'Servidor' : 'Gestão'}</strong> - ${new Date(i.createdAt).toLocaleDateString('pt-BR')} às ${new Date(i.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+            </p>
+            <p style="margin: 5px 0 0 0;">${i.message}</p>
+          </div>
+        `).join('')
+        : '<p style="color: #999; font-style: italic;">Nenhuma interação registrada</p>';
+
       // Cria documento HTML para impressão
       const htmlContent = `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Requerimento ${data.requestNumber}</title>
+  <title>Requerimento ${data.id}</title>
   <style>
     body {
       font-family: 'Times New Roman', Times, serif;
@@ -218,38 +246,16 @@ export default function RequerimentosPage() {
       padding-bottom: 20px;
       margin-bottom: 30px;
     }
-    .header h1 {
-      font-size: 18px;
-      margin: 5px 0;
-    }
-    .header h2 {
-      font-size: 16px;
-      margin: 5px 0;
-    }
-    .request-info {
-      margin: 20px 0;
-    }
-    .request-info p {
-      margin: 10px 0;
-    }
-    .server-data {
+    .header h1 { font-size: 18px; margin: 5px 0; }
+    .header h2 { font-size: 16px; margin: 5px 0; }
+    .request-info { margin: 20px 0; }
+    .request-info p { margin: 10px 0; }
+    .server-data, .description, .interactions {
       margin: 20px 0;
       padding: 15px;
       border: 1px solid #ccc;
-      background-color: #f9f9f9;
     }
-    .server-data h3 {
-      margin-top: 0;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 10px;
-    }
-    .description {
-      margin: 20px 0;
-      padding: 15px;
-      border: 1px solid #ccc;
-      background-color: #fff;
-    }
-    .description h3 {
+    .server-data h3, .description h3, .interactions h3 {
       margin-top: 0;
       border-bottom: 1px solid #ccc;
       padding-bottom: 10px;
@@ -261,10 +267,7 @@ export default function RequerimentosPage() {
       padding-top: 20px;
     }
     @media print {
-      body {
-        margin: 0;
-        padding: 20px;
-      }
+      body { margin: 0; padding: 20px; }
     }
   </style>
 </head>
@@ -290,9 +293,20 @@ export default function RequerimentosPage() {
 
   <div class="description">
     <h3>DESCRIÇÃO DO REQUERIMENTO</h3>
-    <p>${data.description}</p>
-    ${data.outrosDescricao ? `<p><strong>Detalhamento:</strong> ${data.outrosDescricao}</p>` : ''}
+    <p>${data.description || 'Sem descrição'}</p>
   </div>
+
+  <div class="interactions">
+    <h3>HISTÓRICO DE INTERAÇÕES</h3>
+    ${interactionsHtml}
+  </div>
+
+  ${data.responseNotes ? `
+  <div class="description">
+    <h3>RESPOSTA DA GESTÃO</h3>
+    <p>${data.responseNotes}</p>
+  </div>
+  ` : ''}
 
   <div class="footer">
     <p>Documento gerado eletronicamente pelo Sistema de Gestão de Servidores</p>
@@ -317,6 +331,36 @@ export default function RequerimentosPage() {
     } catch (error) {
       console.error("Erro ao gerar documento:", error);
       alert("Erro ao gerar documento oficial");
+    }
+  };
+
+  const handleSendMessage = async (requestId: string) => {
+    if (!newMessage.trim()) return;
+    
+    setSendingMessage(true);
+    try {
+      const res = await fetch(`/api/requests/${requestId}/interactions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "servidor",
+          message: newMessage,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Erro ao enviar mensagem");
+        return;
+      }
+
+      setNewMessage("");
+      // Recarrega requerimentos para mostrar nova interação
+      if (serverId) loadRequests(serverId);
+    } catch (error) {
+      alert("Erro de conexão. Tente novamente.");
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -438,14 +482,100 @@ export default function RequerimentosPage() {
                 )}
 
                 <button
+                  onClick={() => setShowChat(request)}
+                  className="mt-3 w-full flex items-center justify-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+                >
+                  <MessageCircle className="h-5 w-5 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-900">
+                    Ver Histórico de Interações {request.interactions && request.interactions.length > 0 && `(${request.interactions.length})`}
+                  </span>
+                </button>
+                <button
                   onClick={() => handleGenerateOfficialDocument(request.id)}
-                  className="mt-3 w-full flex items-center justify-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                  className="mt-2 w-full flex items-center justify-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                 >
                   <FileText className="h-5 w-5 text-blue-600" />
                   <span className="text-sm font-medium text-blue-900">Gerar Documento Oficial</span>
                 </button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Modal de Chat/Histórico */}
+        {showChat && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Histórico de Interações</h3>
+                  <p className="text-sm text-slate-600">
+                    Requerimento: {showChat.type} - {new Date(showChat.createdAt).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowChat(null)}
+                  className="p-2 hover:bg-slate-100 rounded-lg"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {showChat.interactions && showChat.interactions.length > 0 ? (
+                  showChat.interactions.map((interaction) => (
+                    <div
+                      key={interaction.id}
+                      className={`p-3 rounded-lg border-l-4 ${
+                        interaction.from === "servidor"
+                          ? "bg-blue-50 border-blue-500"
+                          : "bg-green-50 border-green-500"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-slate-700">
+                          {interaction.from === "servidor" ? "👤 Servidor" : "👔 Gestão"}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {new Date(interaction.createdAt).toLocaleDateString('pt-BR')} às{" "}
+                          {new Date(interaction.createdAt).toLocaleTimeString('pt-BR', {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-700">{interaction.message}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-slate-500 py-8">
+                    Nenhuma interação registrada ainda
+                  </p>
+                )}
+              </div>
+
+              <div className="p-4 border-t border-slate-200">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSendMessage(showChat.id);
+                    }}
+                    placeholder="Digite sua mensagem..."
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={() => handleSendMessage(showChat.id)}
+                    disabled={sendingMessage || !newMessage.trim()}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {sendingMessage ? "Enviando..." : "Enviar"}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

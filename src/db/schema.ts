@@ -189,5 +189,17 @@ export const requests = pgTable("requests", {
   documentName: text("document_name"), // Nome do documento
 });
 
+export const requestInteractions = pgTable("request_interactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  requestId: uuid("request_id")
+    .notNull()
+    .references(() => requests.id, { onDelete: "cascade" }),
+  from: text("from").notNull(), // "servidor" ou "gestao"
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type Request = typeof requests.$inferSelect;
 export type NewRequest = typeof requests.$inferInsert;
+export type RequestInteraction = typeof requestInteractions.$inferSelect;
+export type NewRequestInteraction = typeof requestInteractions.$inferInsert;

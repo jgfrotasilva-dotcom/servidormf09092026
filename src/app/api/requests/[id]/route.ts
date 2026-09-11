@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { requests } from "@/db/schema";
+import { requests, requestInteractions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -32,6 +32,15 @@ export async function PUT(
 
     // Se for atualização de status (aprovar/rejeitar pela gestão)
     if (status && (status === "aprovado" || status === "rejeitado")) {
+      // Salva a resposta como interação
+      if (responseNotes) {
+        await db.insert(requestInteractions).values({
+          requestId: id,
+          from: "gestao",
+          message: responseNotes,
+        });
+      }
+
       const [updated] = await db
         .update(requests)
         .set({

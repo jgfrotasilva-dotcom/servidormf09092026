@@ -11,27 +11,38 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const serverId = searchParams.get("serverId");
     const type = searchParams.get("type");
-
-    if (!serverId) {
-      return NextResponse.json({ error: "serverId é obrigatório" }, { status: 400 });
-    }
+    const limit = searchParams.get("limit");
 
     let result;
-    if (type === "AUSENCIA" || type === "ORIENTACAO_TECNICA") {
-      result = await db
-        .select()
-        .from(absences)
-        .where(and(eq(absences.serverId, serverId), eq(absences.type, type)))
-        .orderBy(desc(absences.systemDate));
+    
+    // Se tiver serverId, filtra por servidor (uso no portal do servidor)
+    // Se não tiver, retorna todas (uso no dashboard da gestão)
+    if (serverId) {
+      if (type === "AUSENCIA" || type === "ORIENTACAO_TECNICA") {
+        result = await db
+          .select()
+          .from(absences)
+          .where(and(eq(absences.serverId, serverId), eq(absences.type, type)))
+          .orderBy(desc(absences.systemDate));
+      } else {
+        result = await db
+          .select()
+          .from(absences)
+          .where(eq(absences.serverId, serverId))
+          .orderBy(desc(absences.systemDate));
+      }
     } else {
+      // Dashboard da gestão - retorna todas
       result = await db
         .select()
         .from(absences)
-        .where(eq(absences.serverId, serverId))
         .orderBy(desc(absences.systemDate));
     }
 
-    return NextResponse.json({ absences: result, count: result.length });
+    // Aplica limite se especificado (para dashboard)
+    const limited = limit ? result.slice(0, parseInt(limit)) : result;
+
+    return NextResponse.json({ absences: limited, count: limited.length });
   } catch (error) {
     console.error("Erro ao listar ausências:", error);
     return NextResponse.json({ error: "Erro ao listar ausências" }, { status: 500 });

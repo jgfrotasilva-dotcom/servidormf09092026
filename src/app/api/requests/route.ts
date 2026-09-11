@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { requests } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { requests, requestInteractions } from "@/db/schema";
+import { eq, desc, asc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -19,13 +19,37 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await db
+    const requestsList = await db
       .select()
       .from(requests)
       .where(eq(requests.serverId, serverId))
       .orderBy(desc(requests.createdAt));
 
-    return NextResponse.json({ requests: result, count: result.length });
+    // Busca interações para cada requerimento
+    const requestsWithInteractions = await Promise.all(
+      requestsList.map(async (req) => {
+        const interactions = await db
+          .select()
+          .from(requestInteractions)
+          .where(eq(requestInteractions.requestId, req.id))
+          .orderBy(asc(requestInteractions.createdAt));
+
+        return {
+          ...req,
+          interactions: interactions.map((i) => ({
+            id: i.id,
+            from: i.from,
+            message: i.message,
+            createdAt: i.createdAt,
+          })),
+        };
+      })
+    );
+
+    return NextResponse.json({ 
+      requests: requestsWithInteractions, 
+      count: requestsWithInteractions.length 
+    });
   } catch (error) {
     console.error("Erro ao listar requerimentos:", error);
     return NextResponse.json({ error: "Erro ao listar requerimentos" }, { status: 500 });
