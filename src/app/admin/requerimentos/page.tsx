@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, CheckCircle, XCircle, Clock, MessageSquare, ArrowLeft, Upload, Download, LogOut, MessageCircle, X } from "lucide-react";
+import { FileText, CheckCircle, XCircle, Clock, MessageSquare, ArrowLeft, Upload, Download, LogOut } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { AdminHeader } from "@/components/AdminHeader";
 
@@ -37,9 +37,6 @@ export default function AdminRequerimentosPage() {
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [responseStatus, setResponseStatus] = useState<"aprovado" | "rejeitado">("aprovado");
   const [responseNotes, setResponseNotes] = useState("");
-  const [showChat, setShowChat] = useState<Request | null>(null);
-  const [newMessage, setNewMessage] = useState("");
-  const [sendingMessage, setSendingMessage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -133,34 +130,7 @@ export default function AdminRequerimentosPage() {
     }
   };
 
-  const handleSendMessage = async (requestId: string) => {
-    if (!newMessage.trim()) return;
-    
-    setSendingMessage(true);
-    try {
-      const res = await fetch(`/api/requests/${requestId}/interactions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "gestao",
-          message: newMessage,
-        }),
-      });
 
-      if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || "Erro ao enviar mensagem");
-        return;
-      }
-
-      setNewMessage("");
-      loadRequests();
-    } catch (error) {
-      alert("Erro de conexão. Tente novamente.");
-    } finally {
-      setSendingMessage(false);
-    }
-  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -356,33 +326,24 @@ export default function AdminRequerimentosPage() {
                   </div>
                 )}
 
-              <div className="flex gap-2 pt-4 border-t border-slate-200">
-                <button
-                  onClick={() => setShowChat(request)}
-                  className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chat ({request.interactions?.length || 0})
-                </button>
-                {request.status === "pendente" && (
-                  <>
-                    <button
-                      onClick={() => handleRespond(request, "aprovado")}
-                      className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      Aprovar
-                    </button>
-                    <button
-                      onClick={() => handleRespond(request, "rejeitado")}
-                      className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors"
-                    >
-                      <XCircle className="h-4 w-4" />
-                      Rejeitar
-                    </button>
-                  </>
-                )}
-              </div>
+              {request.status === "pendente" && (
+                <div className="flex gap-2 pt-4 border-t border-slate-200">
+                  <button
+                    onClick={() => handleRespond(request, "aprovado")}
+                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    Aprovar
+                  </button>
+                  <button
+                    onClick={() => handleRespond(request, "rejeitado")}
+                    className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Rejeitar
+                  </button>
+                </div>
+              )}
               </div>
             ))}
           </div>
@@ -478,82 +439,6 @@ export default function AdminRequerimentosPage() {
         </div>
       )}
 
-      {/* Modal de Chat */}
-      {showChat && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Histórico de Interações</h3>
-                <p className="text-sm text-slate-600">
-                  Requerimento: {showChat.type} - {new Date(showChat.createdAt).toLocaleDateString('pt-BR')}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowChat(null)}
-                className="p-2 hover:bg-slate-100 rounded-lg"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {showChat.interactions && showChat.interactions.length > 0 ? (
-                showChat.interactions.map((interaction) => (
-                  <div
-                    key={interaction.id}
-                    className={`p-3 rounded-lg border-l-4 ${
-                      interaction.from === "servidor"
-                        ? "bg-blue-50 border-blue-500"
-                        : "bg-green-50 border-green-500"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-700">
-                        {interaction.from === "servidor" ? "👤 Servidor" : "👔 Gestão"}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {new Date(interaction.createdAt).toLocaleDateString('pt-BR')} às{" "}
-                        {new Date(interaction.createdAt).toLocaleTimeString('pt-BR', {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-700">{interaction.message}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-slate-500 py-8">
-                  Nenhuma interação registrada ainda
-                </p>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-slate-200">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSendMessage(showChat.id);
-                  }}
-                  placeholder="Digite sua mensagem..."
-                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-                <button
-                  onClick={() => handleSendMessage(showChat.id)}
-                  disabled={sendingMessage || !newMessage.trim()}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {sendingMessage ? "Enviando..." : "Enviar"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
