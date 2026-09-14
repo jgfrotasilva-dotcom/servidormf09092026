@@ -10,7 +10,7 @@ export async function GET(_request: NextRequest) {
       .from(servers)
       .where(
         and(
-          inArray(servers.category, ["A", "ACT-F"]),  // ✅ CORRETO
+          inArray(servers.category, ["A", "ACT"]),  // ✅ CORRETO
           eq(servers.active, true)
         )
       )
